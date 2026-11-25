@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RatMath Chaos</title>
+<meta property="og:title" content="RatMath Chaos">
+<meta property="og:description" content="Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents and fractals, exact or certified.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ratmath.com/chaos/">
+<meta name="description" content="Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents and fractals, exact or certified.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css?v=50c961c256">
+<script type="module" src="assets/site.js?v=50c961c256"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">@ratmath/chaos</div>
+<h1>Chaos without rounding error</h1>
+<p class="lede">Dynamical systems are where floating point fails fastest: a chaotic map doubles every rounding error at each step. Here orbits are exact or enclosed, periodic points are algebraic numbers, and statements about stability and bifurcation are proved.</p>
+<p class="notice"><strong>Planned, not built yet.</strong> This site is the frame the package will grow into. The full plan is in the <a href="https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos">library roadmap</a>, and the <a href="https://ratmath.com/shelf/">RatMath Shelf</a> page lists what exists across all the libraries.</p>
+
+<h2>What it will cover</h2>
+<ul>
+  <li>Maps of the line: exact orbits, periodic points as algebraic numbers, stability.</li>
+  <li>Bifurcation diagrams, Lyapunov exponents and symbolic dynamics.</li>
+  <li>Maps of the plane, and flows with sections, periodic orbits and bifurcations.</li>
+  <li>Iterated function systems, Cantor sets, dimensions, L-systems and cellular automata.</li>
+  <li>Julia and Mandelbrot sets and Newton basins.</li>
+</ul>
+
+<h2>The order of work</h2>
+<p>The phases below come from the roadmap. Sizes are rough estimates in lines of source.</p>
+<div class="tablewrap"><table class="plan">
+<tr><th>Phase</th><th>Contents</th><th>Estimate</th></tr>
+<tr><td>1</td><td>Maps of the line: orbits, periodic points, stability</td><td>900</td></tr>
+<tr><td>2</td><td>Bifurcation diagrams, Lyapunov exponents, symbolic dynamics</td><td>1,000</td></tr>
+<tr><td>3</td><td>Maps of the plane; flows, sections, periodic orbits, bifurcations</td><td>1,300</td></tr>
+<tr><td>4</td><td>Iterated function systems, Cantor sets, dimensions, L-systems, cellular automata</td><td>900</td></tr>
+<tr><td>5</td><td>Julia and Mandelbrot sets, Newton basins</td><td>600</td></tr>
+<tr><td>6</td><td>Pictures</td><td>1,000 in graphics</td></tr>
+</table></div>
+<p>It will build on: Core, analytic (enclosures, the validated solver), algebraic (periodic points) and linalg (linearisation); complex for Julia and Mandelbrot sets.</p>
+
+<h2>How the docs will be laid out</h2>
+<p>Like every library on the Shelf: this overview, an <a href="explore.html">Explore</a> page for trying things without writing code, a <a href="reference.html">Reference</a> listing every function, and one page per topic that explains the usage and the mathematics. Every page ends with a box of code you can edit and run.</p>
+<div class="cards" id="cards"></div>
+
+<h2>Until then</h2>
+<p>The box below already runs, with <code>@ratmath/core</code> in scope. It shows the kind of exactness the package is built on, done by hand.</p>
+<section class="runbox" aria-label="Runnable code">
+  <div class="runbox-head"><strong>Try it</strong><span>Edit the code and run it with <code>@ratmath/chaos</code> and Core's <code>Rational</code> in scope. The last line's value is shown; <code>PRINT(…)</code> adds lines, <code>TEX(…)</code> typesets math.</span></div>
+  <textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code">// The doubling map x → 2x mod 1 is the simplest chaotic map. Start both at 1/10.
+const one = new Rational(1), two = new Rational(2);
+const step = (x) =&gt; { const y = x.multiply(two); return y.compareTo(one) &gt;= 0 ? y.subtract(one) : y; };
+let x = new Rational(1, 10);
+let f = 0.1;
+for (let n = 1; n &lt;= 60; n += 1) {
+  x = step(x);
+  f = (2 * f) % 1;
+  if (n % 6 === 0) PRINT(`step ${n}: exact ${x}   float ${f}`);
+}
+// Exactly, 1/10 falls into the cycle 1/5 → 2/5 → 4/5 → 3/5 and stays there for ever.
+// In floating point each step throws away one binary digit, and after about 55 steps
+// nothing is left: the orbit sits at 0, a fixed point the true orbit never reaches.
+plan.map((p) =&gt; `${p.phase}. ${p.contents}`)</textarea>
+  <div class="runbox-bar"><button type="button" data-run>Run</button><button type="button" class="ghost" data-reset>Reset</button><span class="runbox-meta">Ctrl/⌘ + Enter runs</span></div>
+  <div class="runbox-out" aria-live="polite"></div>
+</section>
+<footer class="sitelinks"><a href="https://github.com/ratmath/chaos">GitHub</a> · <a href="https://ratmath.com/">ratmath.com</a> · <a href="https://ratmath.com/shelf/">shelf</a> · <a href="https://ratmath.com/core/">core</a></footer>
+</article>
+</main>
+</div>
+<script type="module">
+import { topicCards } from "./assets/site.js?v=50c961c256";
+topicCards(document.getElementById("cards"));
+</script>
+</body>
+</html>
