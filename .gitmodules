@@ -4,3 +4,6 @@
 [submodule "vendor/algebraic"]
 	path = vendor/algebraic
 	url = https://github.com/ratmath/algebraic.git
+[submodule "vendor/complex"]
+	path = vendor/complex
+	url = https://github.com/ratmath/complex

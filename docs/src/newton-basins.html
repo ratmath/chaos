@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Newton basins · RatMath Chaos</title>
+<meta name="description" content="Basins of attraction of Newton's method for complex polynomials, with each root's basin proved by interval Newton traps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Newton basins</h1>
+<p class="lede">Newton's method for z³ − 1 sends almost every starting point to one of the three cube roots of 1, but the boundaries between the three basins are fractal: at every point of the boundary all three basins meet.</p>
+<pre><code>newtonBasins(["1", "0", "0", "-1"]);        // z³ − 1: three labelled basins
+newtonBasins(["1", "0", "-1"], { width: 40, height: 20 });   // z² − 1: two half-planes
+newtonBasins(["1", "0", "1", "0", "-1"]);   // z⁴ + z² − 1, coefficients highest first</code></pre>
+
+<h2>Newton's map</h2>
+<p>For a polynomial p, Newton's method iterates \(N(z) = z - p(z)/p'(z)\). Near a simple root it converges quadratically, but far from the roots the behaviour is a dynamical system in its own right. Cayley asked in 1879 which root a starting point goes to; for \(z^2 - 1\) the answer is the nearer one, and for \(z^3 - 1\) the boundary of each basin is the boundary of all three, a Julia set of the rational map N.</p>
+
+<h2>What is proved</h2>
+<p>For each root the library builds a small box B around a float approximation and checks, in interval arithmetic, that \(N(B) \subset B\). By Brouwer's theorem N then has a fixed point in B, which is a root of p, and since B is small enough that \(|N'| &lt; 1\) there, every point of B goes to that root. The image is computed with the mean-value form</p>
+\[ N(Z) \subseteq N(m) + N'(Z)\,(Z - m), \qquad N' = \frac{p\,p''}{(p')^2}, \]
+<p>where m is the centre of the box; evaluating N directly on a box loses too much to the dependency problem. A pixel gets label k when its interval Newton orbit enters the k-th proved box, so every point of the pixel converges to root k. Pixels are split up to <code>depth</code> times when the whole cannot be followed. Boundary pixels, and pixels near a critical point of p where \(p'\) vanishes, stay undecided.</p>
+<p>Coefficients are exact (complex ones written <code>"1/2 + 3i"</code>). A root that could not be proved, a multiple root for instance, is listed under <code>unproved</code> and its basin is not labelled.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>newtonBasins(coefficients, { re, im, width, height, maxIter, depth })</td><td>PixelGrid: kind (0 undecided, k for root k), roots (with their proved boxes), unproved, counts</td></tr>
+</table></div>
+<template data-runbox>
+const G = newtonBasins(["1", "0", "0", "-1"], { width: 60, height: 24, re: ["-2", "2"], im: ["-3/2", "3/2"] });
+PRINT(G.toText("?abc"));
+PRINT(String(G));
+G.roots.forEach((r, k) =&gt; PRINT(`root ${k + 1} (${"abc"[k]}): in [${r.re[0].toFixed(12)}, ${r.re[1].toFixed(12)}] + i[${r.im[0].toFixed(12)}, ${r.im[1].toFixed(12)}]`));
+const two = newtonBasins(["1", "0", "-1"], { width: 40, height: 8 });
+PRINT("z² − 1: roots", two.roots.map((r, k) =&gt; `${k + 1} near ${r.approx[0].toFixed(6)}`).join(", "));
+two.toText("?12")
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

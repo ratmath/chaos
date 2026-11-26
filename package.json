@@ -1,6 +1,6 @@
 {
   "name": "@ratmath/chaos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents and fractals, exact or certified",
   "type": "module",
   "main": "index.js",
@@ -44,7 +44,8 @@
   },
   "dependencies": {
     "@ratmath/analytic": "^0.1.0",
-    "@ratmath/algebraic": "^0.1.0"
+    "@ratmath/algebraic": "^0.1.0",
+    "@ratmath/complex": "^0.1.0"
   },
   "peerDependencies": {
     "@ratmath/core": ">=0.10.0 <0.12.0"
@@ -63,6 +64,7 @@
   },
   "workspaces": [
     "vendor/analytic",
-    "vendor/algebraic"
+    "vendor/algebraic",
+    "vendor/complex"
   ]
 }

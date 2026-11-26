@@ -1,8 +1,8 @@
 // Shared page furniture for the chaos docs: the contents column, the theme
 // switch and the code boxes. Add each topic page to PAGES as it is written.
 
-import * as A from "./chaos.js?v=2b232dc77e";
-import { mountRunboxes } from "./runbox.js?v=2b232dc77e";
+import * as A from "./chaos.js?v=c2fcc9e685";
+import { mountRunboxes } from "./runbox.js?v=c2fcc9e685";
 
 export { A };
 
@@ -16,6 +16,14 @@ export const PAGES = [
   { href: "lyapunov.html", title: "Lyapunov exponents and sensitivity", blurb: "Certified averages along true orbits; separation measured" },
   { href: "bifurcations.html", title: "Period doubling and windows", blurb: "Bifurcation parameters proven; Feigenbaum's ratios" },
   { href: "symbolic-dynamics.html", title: "Symbolic dynamics", blurb: "Itineraries, kneading sequences, Sharkovskii's order" },
+  { group: "Fractals and automata" },
+  { href: "iterated-function-systems.html", title: "Iterated function systems", blurb: "Exact stages, contraction bounds, similarity dimensions, the chaos game" },
+  { href: "cantor-sets.html", title: "Cantor sets and dimension", blurb: "Exact membership of fractions; stages, measure, dimension" },
+  { href: "l-systems.html", title: "L-systems", blurb: "Symbol counts by matrix power; turtle paths exact in Q(√3)" },
+  { href: "cellular-automata.html", title: "Cellular automata", blurb: "Elementary rules and Life; still lifes, oscillators, spaceships" },
+  { group: "Escape-time pictures" },
+  { href: "mandelbrot-and-julia.html", title: "Mandelbrot and Julia sets", blurb: "Pixels proved inside or outside, the rest honestly undecided" },
+  { href: "newton-basins.html", title: "Newton basins", blurb: "Each root's basin proved by interval Newton traps" },
 ];
 
 export const h = (tag, attrs = {}, ...kids) => {
