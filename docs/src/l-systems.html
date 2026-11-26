@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L-systems · RatMath Chaos</title>
+<meta name="description" content="Strings rewritten in parallel and drawn by a turtle: exact symbol counts by matrix power, exact coordinates in Q(√3).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>L-systems</h1>
+<p class="lede">An L-system rewrites every symbol of a string at once, then a turtle draws the result. The strings grow exponentially, but how many of each symbol they hold is a matrix power, exact for any n, and for angles that are multiples of 30° every point the turtle visits is exactly a + b√3.</p>
+<pre><code>const K = lsystems.koch();                  // axiom F, F → F+F--F+F, angle 60°
+K.generate(2);                               // the string after two rewritings
+K.counts(100).counts.F;                      // 4^100, exactly, without writing the string
+K.turtle(3).exactSegments;                   // end points as Q3 numbers a + b√3
+lsystem({ axiom: "X", rules: { X: "F+[[X]-X]-F[-FX]+X", F: "FF" }, angle: 25 });</code></pre>
+
+<h2>Parallel rewriting</h2>
+<p>An L-system has an axiom and rules mapping single symbols to strings; symbols without a rule are copied. One step rewrites every symbol at the same time. Lindenmayer used them for the growth of plants, where every cell divides at once. <code>generate(n)</code> writes the string out, refusing past five million symbols.</p>
+
+<h2>Counting without writing</h2>
+<p>Let \(M_{ab}\) be the number of b in the rule for a. If \(v\) counts the symbols of the axiom, then \(v M^n\) counts the symbols after n steps, and repeated squaring gives \(M^n\) with BigInt entries in about \(\log_2 n\) multiplications. For the Koch curve M has the eigenvalue 4, so the curve has \(4^n\) segments, each \(3^{-n}\) long: its length \((4/3)^n\) grows without bound while it stays in a bounded region. For the dragon the counts follow powers of 2.</p>
+
+<h2>The turtle, exactly</h2>
+<p>F and G draw a unit step, f moves without drawing, + and − turn by the angle, | turns around, and [ ] save and restore the position and heading. When the angle is a multiple of 30°, \(\cos\) and \(\sin\) of every heading are among \(0, \pm\tfrac12, \pm1, \pm\tfrac{\sqrt3}2\), so every position is \(a + b\sqrt3\) with rational a and b. The library carries those as <code>Q3</code> numbers, which is how it can say the Koch snowflake closes up exactly: its end point is (0, 0), not something within 10⁻¹⁵ of it. Other angles (the 25° plant, the 45° Lévy curve) are drawn in floats and the result says <code>kind: "float"</code>.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>lsystem({ axiom, rules, angle, draw = "FG", move = "f" })</td><td>An LSystem</td></tr>
+<tr><td>generate(n)</td><td>The string</td></tr>
+<tr><td>counts(n)</td><td>{ counts: { symbol: BigInt }, length: BigInt }</td></tr>
+<tr><td>turtle(n, { step })</td><td>{ kind, segments, exactSegments, end }</td></tr>
+<tr><td>lsystems</td><td>koch, snowflake, arrowhead, dragon, hilbert, levy, plant</td></tr>
+<tr><td>Q3</td><td>a + b√3: add, mul, equals, toNumber, toString</td></tr>
+</table></div>
+<template data-runbox>
+const K = lsystems.koch();
+PRINT("after 2 steps:", K.generate(2));
+const c = K.counts(60);
+PRINT("after 60 steps: F appears", c.counts.F.toString(), "times; length", c.length.toString());
+const S = lsystems.snowflake().turtle(2);
+PRINT("snowflake, stage 2:", S.segments.length, "segments, ends at (", S.end.map(String).join(", "), ")");
+PRINT("a corner of it:", S.exactSegments[5].slice(2).map(String).join(", "));
+// draw the Hilbert curve on a character grid
+const H = lsystems.hilbert().turtle(3);
+const n = 8, grid = Array.from({ length: 2 * n - 1 }, () =&gt; Array(2 * n - 1).fill(" "));
+for (const [x1, y1, x2, y2] of H.segments) {
+  const [a, b, c2, d] = [x1, y1, x2, y2].map((v) =&gt; Math.round(v));
+  grid[2 * n - 2 - (b + d)][a + c2] = a === c2 ? "|" : "-";
+  grid[2 * n - 2 - 2 * b][2 * a] = "o";
+  grid[2 * n - 2 - 2 * d][2 * c2] = "o";
+}
+grid.map((r) =&gt; r.join("")).join("\n")
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

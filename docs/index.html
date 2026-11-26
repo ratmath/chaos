@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="https://ratmath.com/assets/katex/0.19.1/katex.min.css">
-<link rel="stylesheet" href="assets/style.css?v=2b232dc77e">
-<script type="module" src="assets/site.js?v=2b232dc77e"></script>
+<link rel="stylesheet" href="assets/style.css?v=c2fcc9e685">
+<script type="module" src="assets/site.js?v=c2fcc9e685"></script>
 </head>
 <body>
 <div class="shell">
@@ -47,8 +47,11 @@ itinerary(f, "1/10", 12);                    // "LLRLRRRLLRLR"</code></pre>
 <h2>Numbers in</h2>
 <p>Starting points and parameters are exact: a whole number, a fraction <code>"1/3"</code> or a decimal string <code>"3.2"</code>, which means 16/5. A JavaScript number that is not whole is refused, because <code>0.1</code> is not one tenth and the point of the library is that the orbit you get is the orbit of the number you typed.</p>
 
+<h2>Fractals, automata and honest pixels</h2>
+<p>The same three kinds of answer carry over to pictures. An <a href="iterated-function-systems.html">iterated function system</a> with rational maps has exact stages and a dimension that is exact or certified; the chaos game that draws it is an estimate and says so. Whether a fraction lies in a <a href="cantor-sets.html">Cantor set</a> is decided exactly. <a href="l-systems.html">L-systems</a> count their symbols by matrix powers and draw at multiples of 30° in exact coordinates, and <a href="cellular-automata.html">cellular automata</a> are exact by nature. In a <a href="mandelbrot-and-julia.html">Mandelbrot or Julia picture</a> or a picture of <a href="newton-basins.html">Newton basins</a>, every pixel is proved outside, proved inside, or left undecided.</p>
+
 <h2>Still to come</h2>
-<p>Maps of the plane and flows; fractals, iterated function systems and cellular automata; Julia and Mandelbrot sets; pictures in graphics. The <code>plan</code> export lists the phases, from the <a href="https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos">library roadmap</a>. The <a href="https://ratmath.com/shelf/">RatMath Shelf</a> page lists what exists across all the libraries.</p>
+<p>Maps of the plane and flows, and pictures in graphics. The <code>plan</code> export lists the phases, from the <a href="https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos">library roadmap</a>. The <a href="https://ratmath.com/shelf/">RatMath Shelf</a> page lists what exists across all the libraries.</p>
 <section class="runbox" aria-label="Runnable code">
   <div class="runbox-head"><strong>Try it</strong><span>Edit the code and run it with <code>@ratmath/chaos</code> and Core's <code>Rational</code> in scope. The last line's value is shown; <code>PRINT(…)</code> adds lines, <code>TEX(…)</code> typesets math.</span></div>
   <textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code">const f = logistic(4);
@@ -66,7 +69,7 @@ plan.map((p) =&gt; `${p.phase}. ${p.contents}`)</textarea>
 </main>
 </div>
 <script type="module">
-import { topicCards } from "./assets/site.js?v=2b232dc77e";
+import { topicCards } from "./assets/site.js?v=c2fcc9e685";
 topicCards(document.getElementById("cards"));
 </script>
 </body>

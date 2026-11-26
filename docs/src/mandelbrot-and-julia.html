@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mandelbrot and Julia sets · RatMath Chaos</title>
+<meta name="description" content="Julia sets and the Mandelbrot set with every pixel proved outside, proved inside, or honestly undecided.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Mandelbrot and Julia sets</h1>
+<p class="lede">A pixel is a small square of the plane, not a point. Here every pixel of a Mandelbrot or Julia picture is proved to lie outside the set, proved to lie inside it, or left undecided, and only the boundary is ever undecided.</p>
+<pre><code>mandelbrot({ re: ["-2", "1/2"], im: ["-5/4", "5/4"], width: 72, height: 30 });
+julia("-1", { re: ["-2", "2"], im: ["-1", "1"] });   // the basilica
+mandelbrotPoint("-13/10");                   // { verdict: "inside", period: 4, … }
+juliaPoint("-1", "1/2");                     // an exact z₀ under z → z² − 1</code></pre>
+
+<h2>The sets</h2>
+<p>For \(f_c(z) = z^2 + c\), the filled Julia set \(K_c\) is the set of \(z\) whose orbit stays bounded, and the Mandelbrot set M is the set of c for which the orbit of 0 stays bounded. Both are compact, and the usual pictures colour a point by how many steps its float orbit takes to pass 2. That is a heuristic twice over: the point stands for a whole pixel, and the float orbit is not the true orbit.</p>
+
+<h2>Outside, proved</h2>
+<p>If \(|z| &gt; \max(2, |c|)\) then \(|f_c(z)| &gt; |z|\), and the orbit goes to infinity. The library carries the whole pixel as a box of complex numbers in interval arithmetic, with every float result moved outward by more than its rounding error, so if some iterate of the box lies entirely beyond the radius, every point of the pixel escapes.</p>
+
+<h2>Inside, proved</h2>
+<p>Being inside is harder, because no finite number of steps shows that an orbit stays bounded forever. Two tests prove it here. For M, the main cardioid \(q(q + x - \tfrac14) &lt; \tfrac{y^2}4\) with \(q = (x - \tfrac14)^2 + y^2\), and the disc \((x+1)^2 + y^2 &lt; \tfrac1{16}\), contain exactly the c with an attracting fixed point or 2-cycle; the inequalities are checked on the whole pixel. Otherwise the library looks for a trap: a box B around the orbit's current position with \(f^p(B) \subset B\) in intervals. Then every later iterate stays in B, so the orbit is bounded, and B holds an attracting cycle of period dividing p. A pixel that cannot be decided whole is split into 4, then 16 pieces (<code>depth</code>).</p>
+<p>For Julia sets the trap is built around the attracting cycle (found in floats, then proved by the trap itself). If \(f_c\) has no attracting cycle, as for c outside M, nothing can be inside and nothing is claimed.</p>
+
+<h2>Single points, exactly</h2>
+<p><code>mandelbrotPoint(c)</code> and <code>juliaPoint(c, z0)</code> do the same for one exact point with the complex package's rational rectangles, rounded outward to a chosen number of bits. Points on the boundary, such as \(c = \tfrac14\), \(-\tfrac34\) or \(-2\), stay undecided, which is the honest answer: they are in M, but no escape or trap argument shows it.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>mandelbrot({ re, im, width, height, maxIter, maxPeriod, depth })</td><td>PixelGrid: kind (0 undecided, 1 inside, 2 outside), counts, escape, toText()</td></tr>
+<tr><td>julia(c, { re, im, width, height, maxIter, depth })</td><td>PixelGrid, with the cycle it trapped</td></tr>
+<tr><td>mandelbrotPoint(c, { maxIter, bits, maxPeriod })</td><td>{ verdict, reason, period? or escape? }</td></tr>
+<tr><td>juliaPoint(c, z0, { … })</td><td>The same for a point of the plane</td></tr>
+</table></div>
+<template data-runbox>
+const M = mandelbrot({ width: 60, height: 24, maxIter: 120 });
+PRINT(M.toText("?█ "));
+PRINT(String(M));
+for (const c of ["0", "-1", "-13/10", "-0.12 + 0.75i", "1/2", "1/4", "-2"]) {
+  const v = mandelbrotPoint(c, { maxIter: 300 });
+  PRINT(c.padEnd(14), v.verdict.padEnd(10), v.reason);
+}
+const J = julia("-1", { width: 60, height: 16, re: ["-2", "2"], im: ["-1", "1"] });
+PRINT(J.toText("?█ "));
+String(J)
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

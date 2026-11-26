@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cellular automata · RatMath Chaos</title>
+<meta property="og:title" content="Cellular automata · RatMath Chaos">
+<meta property="og:description" content="Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents and fractals, exact or certified.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ratmath.com/chaos/cellular-automata.html">
+<meta name="description" content="Wolfram's elementary rules and Conway's Life on an unbounded plane, with exact classification of still lifes, oscillators and spaceships.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://ratmath.com/assets/katex/0.19.1/katex.min.css">
+<link rel="stylesheet" href="assets/style.css?v=c2fcc9e685">
+<script type="module" src="assets/site.js?v=c2fcc9e685"></script>
+</head>
+<body>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Cellular automata</h1>
+<p class="lede">Cells that are 0 or 1, updated by a local rule: the discrete end of dynamics, where everything is exact and yet rule 30 looks random and Life can compute anything.</p>
+<pre><code>elementary(90).fromCell(15);                // rows of Pascal's triangle mod 2
+elementary(110).equivalents;                 // [110, 124, 137, 193]
+elementary(184).cycle("10101010");           // { transient: 0, period: 2 }
+life(patterns.glider).classify();            // { kind: "spaceship", period: 4, speed: "c/4", … }
+life("OOO\nO..\nO..", { rule: "B36/S23" }); // HighLife</code></pre>
+
+<h2>Elementary rules</h2>
+<p>A row of cells, each new cell determined by itself and its two neighbours. There are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>3</mn></msup><mo>=</mo><mn>8</mn></mrow><annotation encoding="application/x-tex">2^3 = 8</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6444em;"></span><span class="mord">8</span></span></span></span> neighbourhoods and so <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>8</mn></msup><mo>=</mo><mn>256</mn></mrow><annotation encoding="application/x-tex">2^8 = 256</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">8</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6444em;"></span><span class="mord">256</span></span></span></span> rules, numbered by Wolfram: bit n of the rule number is the new cell for the neighbourhood whose binary value is n. Reflecting left and right, or swapping 0 and 1, turns one rule into another that behaves the same way, which cuts 256 rules to 88 classes; <code>equivalents</code> lists a rule's class.</p>
+<p>Rule 90 is additive: the new cell is the sum mod 2 of the two neighbours. From one live cell, row t is then the binomial coefficients <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo fence="true">(</mo><mfrac linethickness="0px"><mi>t</mi><mi>k</mi></mfrac><mo fence="true">)</mo></mrow><annotation encoding="application/x-tex">\binom{t}{k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.2246em;vertical-align:-0.35em;"></span><span class="mord"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">(</span></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8746em;"><span style="top:-2.355em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span style="top:-3.144em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">)</span></span></span></span></span></span> mod 2, which is Sierpinski's triangle again, and by Lucas's theorem <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo fence="true">(</mo><mfrac linethickness="0px"><mi>t</mi><mi>k</mi></mfrac><mo fence="true">)</mo></mrow><annotation encoding="application/x-tex">\binom{t}{k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.2246em;vertical-align:-0.35em;"></span><span class="mord"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">(</span></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8746em;"><span style="top:-2.355em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span style="top:-3.144em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">)</span></span></span></span></span></span> is odd exactly when the binary digits of k are a subset of those of t. <code>additive</code> tests the linearity condition directly and finds exactly the eight rules 0, 60, 90, 102, 150, 170, 204, 240.</p>
+<p>On a ring of n cells there are <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> rows, so every orbit eventually repeats; <code>cycle</code> finds when and with what period. Rule 30 from one cell looks random enough that its centre column was used as a random number generator, and rule 110 was proved capable of universal computation.</p>
+
+<h2>Life</h2>
+<p>Conway's Game of Life on the unbounded plane: a dead cell with exactly 3 live neighbours is born, a live one with 2 or 3 survives. Other rules are written the same way, as "B3/S23". Only live cells are stored, so a glider can travel forever.</p>
+<p><code>classify</code> runs a pattern and compares each generation's shape, moved to the origin, with all earlier ones, cell by cell. A repeat in the same place is a still life or an oscillator with that period; a repeat that has moved is a spaceship, with its speed in cells per generation as a fraction of c, the speed of light (one cell per step). The glider moves one cell diagonally every 4 generations, c/4; the lightweight spaceship moves 2 cells in 4, c/2. Patterns that grow forever, like the Gosper glider gun, never repeat and come back as "unknown" within the limit.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>elementary(rule)</td><td>Elementary: table, mirror, complement, equivalents, additive</td></tr>
+<tr><td>step(row, { boundary }), run(initial, steps), fromCell(steps)</td><td>Uint8Array rows</td></tr>
+<tr><td>cycle(initial, { limit })</td><td>{ transient, period }</td></tr>
+<tr><td>showRows(rows, on, off)</td><td>Rows as text</td></tr>
+<tr><td>life(cells, { rule })</td><td>Life: population, step(), run(n), bounds(), classify(), toString()</td></tr>
+<tr><td>patterns</td><td>block, blinker, toad, beacon, glider, lwss, pulsar, rpentomino, gosperGun</td></tr>
+</table></div>
+<section class="runbox" aria-label="Runnable code">
+  <div class="runbox-head"><strong>Try it</strong><span>Edit the code and run it with <code>@ratmath/chaos</code> and Core's <code>Rational</code> in scope. The last line's value is shown; <code>PRINT(…)</code> adds lines, <code>TEX(…)</code> typesets math.</span></div>
+  <textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code">PRINT(showRows(elementary(90).fromCell(15)));
+PRINT("");
+PRINT(showRows(elementary(30).fromCell(15)));
+PRINT("rule 30 is equivalent to", elementary(30).equivalents.join(", "));
+PRINT("additive rules:", Array.from({ length: 256 }, (_, r) =&gt; r).filter((r) =&gt; elementary(r).additive).join(", "));
+for (const name of ["block", "blinker", "pulsar", "glider", "lwss"]) {
+  const c = life(patterns[name]).classify();
+  PRINT(name.padEnd(8), c.kind, c.period ?? "", c.speed ?? "");
+}
+const r = life(patterns.rpentomino);
+PRINT("R-pentomino: population after 100 generations", r.run(100).population);
+life(patterns.glider).run(4).toString()</textarea>
+  <div class="runbox-bar"><button type="button" data-run>Run</button><button type="button" class="ghost" data-reset>Reset</button><span class="runbox-meta">Ctrl/⌘ + Enter runs</span></div>
+  <div class="runbox-out" aria-live="polite"></div>
+</section>
+<footer class="sitelinks"><a href="https://github.com/ratmath/chaos">GitHub</a> · <a href="https://ratmath.com/">ratmath.com</a> · <a href="https://ratmath.com/shelf/">shelf</a> · <a href="https://ratmath.com/core/">core</a></footer>
+</article>
+</main>
+</div>
+</body>
+</html>

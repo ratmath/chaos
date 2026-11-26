@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="https://ratmath.com/assets/katex/0.19.1/katex.min.css">
-<link rel="stylesheet" href="assets/style.css?v=2b232dc77e">
-<script type="module" src="assets/site.js?v=2b232dc77e"></script>
+<link rel="stylesheet" href="assets/style.css?v=c2fcc9e685">
+<script type="module" src="assets/site.js?v=c2fcc9e685"></script>
 </head>
 <body>
 <div class="shell">
@@ -62,6 +62,27 @@
 <tr><td>sharkovskii</td><td>{ order(limit), compare(a, b), forces(a, b), forced(n, limit) }.</td></tr>
 <tr><td>ChaosError</td><td>What the library throws, with a <code>code</code>: inexact, too-large, escapes, not-polynomial, not-proven and others.</td></tr>
 <tr><td>plan</td><td>The phases still to come, each { phase, contents, estimate }.</td></tr>
+</table></div>
+<h2>Fractals</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>new IFS(maps, { name, probabilities }), Affine</td><td>An iterated function system of affine maps with rational coefficients: stage(n), step, fixedPoint(i), contraction(), similarityDimension(), chaosGame(n, { seed }). See <a href="iterated-function-systems.html">Iterated function systems</a>.</td></tr>
+<tr><td>attractors</td><td>sierpinski, carpet, vicsek, cantorDust, heighway, levyDragon, barnsley.</td></tr>
+<tr><td>moran(ratios, { bits })</td><td>The s with Σ rᵢ^s = 1: exact or certified.</td></tr>
+<tr><td>boxCounting(points, { scales }), seeded(seed)</td><td>An estimated box dimension; a repeatable random generator.</td></tr>
+<tr><td>cantor({ base, digits })</td><td>A DigitCantor: contains(q), expansion(q), stage(n), measure(n), dimension(). See <a href="cantor-sets.html">Cantor sets</a>.</td></tr>
+<tr><td>lsystem(spec), lsystems, LSystem, Q3</td><td>L-systems: generate(n), counts(n), turtle(n). See <a href="l-systems.html">L-systems</a>.</td></tr>
+</table></div>
+
+<h2>Automata and pictures</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>elementary(rule), Elementary, showRows(rows)</td><td>Wolfram's rules: table, mirror, complement, equivalents, additive, step, run, fromCell, cycle. See <a href="cellular-automata.html">Cellular automata</a>.</td></tr>
+<tr><td>life(cells, { rule }), Life, patterns</td><td>Life and its relatives on the unbounded plane: step, run, population, bounds, classify, toString.</td></tr>
+<tr><td>mandelbrot(options), julia(c, options)</td><td>PixelGrid of proved inside / outside / undecided pixels. See <a href="mandelbrot-and-julia.html">Mandelbrot and Julia sets</a>.</td></tr>
+<tr><td>mandelbrotPoint(c), juliaPoint(c, z0)</td><td>One exact point: { verdict, reason, period or escape }.</td></tr>
+<tr><td>newtonBasins(coefficients, options)</td><td>PixelGrid labelled by proved root. See <a href="newton-basins.html">Newton basins</a>.</td></tr>
+<tr><td>PixelGrid</td><td>width, height, kind, counts, at(i, j), toText(chars).</td></tr>
 </table></div>
 <section class="runbox" aria-label="Runnable code">
   <div class="runbox-head"><strong>Try it</strong><span>Edit the code and run it with <code>@ratmath/chaos</code> and Core's <code>Rational</code> in scope. The last line's value is shown; <code>PRINT(…)</code> adds lines, <code>TEX(…)</code> typesets math.</span></div>

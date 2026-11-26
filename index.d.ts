@@ -97,3 +97,134 @@ export const sharkovskii: {
   forced(n: number, limit?: number): number[];
   order(limit?: number): number[];
 };
+
+// ---- phases 4 and 5: fractals, L-systems, automata, escape-time pictures ----
+
+export type Point = [Rational, Rational];
+export interface Dimension { kind: "exact" | "certified"; value: Rational | null; interval: [Rational, Rational]; formula: string }
+export function seeded(seed?: number): () => number;
+export interface AffineSpec { a?: Exact; b?: Exact; c?: Exact; d?: Exact; e?: Exact; f?: Exact }
+export class Affine {
+  constructor(spec?: AffineSpec);
+  readonly a: Rational; readonly b: Rational; readonly c: Rational; readonly d: Rational; readonly e: Rational; readonly f: Rational;
+  /** r times a rotation by `rotate` quarter turns (optionally reflected), then shifted by (e, f). */
+  static similarity(r: Exact, options?: { e?: Exact; f?: Exact; rotate?: number; reflect?: boolean }): Affine;
+  readonly det: Rational;
+  apply(p: [Exact, Exact]): Point;
+  applyFloat(p: [number, number]): [number, number];
+  similarityRatio(): { r2: Rational; r: Rational | null } | null;
+  lipschitzBound(): Rational;
+}
+export class IFS {
+  constructor(maps: Array<Affine | AffineSpec>, options?: { name?: string; probabilities?: Exact[] });
+  readonly maps: readonly Affine[];
+  readonly name: string;
+  readonly probabilities: readonly Rational[];
+  contraction(): { bounds: Rational[]; contracting: boolean };
+  step(points: Point[]): Point[];
+  stage(n: number, start?: Array<[Exact, Exact]> | null): Point[];
+  fixedPoint(i?: number): Point;
+  chaosGame(n?: number, options?: { seed?: number; skip?: number }): { kind: "estimated"; seed: number; points: Float64Array; count: number };
+  similarityDimension(options?: { bits?: number }): Dimension;
+}
+export const attractors: Readonly<Record<"sierpinski" | "carpet" | "vicsek" | "cantorDust" | "heighway" | "levyDragon" | "barnsley", () => IFS>>;
+export function moran(ratios: Exact[], options?: { bits?: number; squared?: boolean }): Dimension;
+export class DigitCantor {
+  constructor(options?: { base?: number; digits?: number[] });
+  readonly base: number;
+  readonly digits: readonly number[];
+  contains(q: Exact): { inside: boolean; expansion?: string; reason: string };
+  expansion(q: Exact): string;
+  stage(n: number): Array<[Rational, Rational]>;
+  measure(n: number): Rational;
+  dimension(options?: { bits?: number }): Dimension;
+}
+export function cantor(options?: { base?: number; digits?: number[] }): DigitCantor;
+export function boxCounting(points: { points: Float64Array } | Array<[number, number]>, options?: { scales?: number[]; bounds?: [number, number, number, number] | null }): { kind: "estimated"; dimension: number; rows: Array<{ k: number; boxes: number }>; points: number };
+
+export class Q3 {
+  constructor(a?: Rational, b?: Rational);
+  readonly a: Rational;
+  readonly b: Rational;
+  add(o: Q3): Q3;
+  mul(o: Q3): Q3;
+  equals(o: Q3): boolean;
+  toNumber(): number;
+  toString(): string;
+}
+export interface LSystemSpec { axiom: string; rules?: Record<string, string>; angle?: number; name?: string; draw?: string; move?: string }
+export class LSystem {
+  constructor(spec: LSystemSpec);
+  readonly axiom: string;
+  readonly rules: Readonly<Record<string, string>>;
+  readonly angle: number;
+  readonly name: string;
+  generate(n: number): string;
+  counts(n: number): { counts: Record<string, bigint>; length: bigint };
+  turtle(n: number, options?: { step?: number }): { kind: "exact" | "float"; segments: Array<[number, number, number, number]>; exactSegments: Array<[Q3, Q3, Q3, Q3]> | null; end: [Q3, Q3] | [number, number] };
+}
+export function lsystem(spec: LSystemSpec): LSystem;
+export const lsystems: Readonly<Record<"koch" | "snowflake" | "arrowhead" | "dragon" | "hilbert" | "levy" | "plant", () => LSystem>>;
+
+export class Elementary {
+  constructor(rule: number);
+  readonly rule: number;
+  readonly table: Record<string, number>;
+  readonly mirror: number;
+  readonly complement: number;
+  readonly equivalents: number[];
+  readonly additive: boolean;
+  step(row: Uint8Array, options?: { boundary?: "periodic" | "zero" }): Uint8Array;
+  run(initial: string | ArrayLike<number>, steps: number, options?: { boundary?: "periodic" | "zero" }): Uint8Array[];
+  fromCell(steps: number): Uint8Array[];
+  cycle(initial: string | ArrayLike<number>, options?: { limit?: number }): { transient: number; period: number };
+  toString(): string;
+}
+export function elementary(rule: number): Elementary;
+export function showRows(rows: ArrayLike<number>[], on?: string, off?: string): string;
+export type LifeClass =
+  | { kind: "dies"; at: number }
+  | { kind: "still life" | "oscillator"; period: number; from: number }
+  | { kind: "spaceship"; period: number; displacement: [number, number]; from: number; speed: string }
+  | { kind: "unknown"; limit: number };
+export class Life {
+  constructor(cells: string | Iterable<[number, number]>, options?: { rule?: string });
+  readonly rule: string;
+  readonly cells: Set<string>;
+  readonly population: number;
+  step(): Life;
+  run(n: number): Life;
+  bounds(): { x0: number; y0: number; x1: number; y1: number } | null;
+  normalized(): { shape: string; dx: number; dy: number };
+  classify(options?: { limit?: number }): LifeClass;
+  toString(on?: string, off?: string): string;
+}
+export function life(cells: string | Iterable<[number, number]>, options?: { rule?: string }): Life;
+export const patterns: Readonly<Record<"block" | "blinker" | "toad" | "beacon" | "glider" | "lwss" | "pulsar" | "rpentomino" | "gosperGun", string>>;
+
+export type Range = [Exact, Exact];
+export interface PictureOptions { re?: Range; im?: Range; width?: number; height?: number; maxIter?: number; depth?: number }
+export class PixelGrid {
+  readonly name: string;
+  readonly width: number;
+  readonly height: number;
+  /** 0 undecided; 1 inside and 2 outside, or k for root k in Newton basins. */
+  readonly kind: Uint8Array;
+  readonly counts: Record<string, number>;
+  readonly labels?: boolean;
+  readonly roots?: Array<{ re: [number, number]; im: [number, number]; approx: [number, number] }>;
+  readonly unproved?: Array<[number, number]>;
+  readonly re: Rational;
+  readonly reHigh: Rational;
+  readonly im: Rational;
+  readonly imHigh: Rational;
+  at(i: number, j: number): number;
+  toText(chars?: string): string;
+  toString(): string;
+}
+export function mandelbrot(options?: PictureOptions & { maxPeriod?: number }): PixelGrid;
+export function julia(c: Exact, options?: PictureOptions): PixelGrid;
+export function newtonBasins(coefficients: Exact[], options?: PictureOptions): PixelGrid;
+export interface PointVerdict { verdict: "inside" | "outside" | "undecided"; reason: string; period?: number; escape?: number }
+export function mandelbrotPoint(c: Exact, options?: { maxIter?: number; bits?: number; maxPeriod?: number }): PointVerdict;
+export function juliaPoint(c: Exact, z0: Exact, options?: { maxIter?: number; bits?: number; maxPeriod?: number }): PointVerdict;

@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## 0.2.0
+
+- Phase 4: iterated function systems of affine maps with rational
+  coefficients (`IFS`, `Affine`, `attractors`): exact stages and fixed points,
+  rational contraction bounds, the similarity dimension exact when rational
+  and certified otherwise (`moran` solves Σ rᵢ^s = 1 for unequal ratios), the
+  chaos game with a seeded generator and `boxCounting` (both estimated).
+  Cantor sets by allowed digits (`cantor`): exact membership of any fraction,
+  stages, measure, dimension. L-systems (`lsystem`, `lsystems`) with symbol
+  counts by matrix power and exact turtle coordinates in Q(√3). Elementary
+  cellular automata (`elementary`) and Life-like rules (`life`, `patterns`)
+  with `classify`.
+- Phase 5: `mandelbrot`, `julia` and `newtonBasins` classify every pixel as
+  proved inside, proved outside or undecided, with outward-rounded float
+  intervals, trapping boxes and the mean-value Newton map;
+  `mandelbrotPoint` and `juliaPoint` decide single exact points with the
+  complex package's rectangles. Adds `@ratmath/complex` as a vendored
+  dependency.
+- Docs: six new topic pages and three new explore panels.
+
 ## 0.1.0
 
 - Maps of the line (roadmap phase 1): `map`, `logistic`, `tent`, `quadratic`,
