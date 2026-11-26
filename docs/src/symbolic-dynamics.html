@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Symbolic dynamics · RatMath Chaos</title>
+<meta name="description" content="Itineraries and kneading sequences computed on true orbits, and Sharkovskii&#x27;s order of the periods.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Symbolic dynamics and Sharkovskii's order</h1>
+<p class="lede">Forget where the orbit is and record only which side of the turning point each term lies on. What is left is a string of letters, and a surprising amount of the dynamics can be read from it.</p>
+<pre><code>itinerary(logistic(4), "1/10", 30);      // "LLRLRRRLLRLRRLLLLLLRRRRLLRLLRR"
+kneading(logistic("3.83"), 12);          // "RLRRLRRLRRLR": the critical orbit is attracted to a 3-cycle
+sharkovskii.order(12);                   // [3, 5, 7, 9, 11, 6, 10, 12, 8, 4, 2, 1]
+sharkovskii.forces(3, 1000);             // true: period three implies every period</code></pre>
+<h2>Itineraries</h2>
+<p>For a map with one turning point c, write L if \(x_n &lt; c\), R if \(x_n &gt; c\) and C if \(x_n = c\). The string for the orbit of \(x_0\) is its <em>itinerary</em>. Because f is increasing on one side of c and decreasing on the other, the itinerary determines the order of points on the line: two points with different itineraries can be told apart, and which is to the left can be read off from where the strings first differ and how many R's came before.</p>
+<p>An itinerary is exactly the kind of thing floating point gets wrong: one misplaced term near c changes every later comparison. <code>itinerary</code> follows the true orbit, in exact rationals while they stay small and then with enclosures, adding digits whenever a term is too close to c to place. For the full logistic map (r = 4) and the tent map, the itinerary is the binary expansion of the starting point in disguise, which is why every string of L's and R's occurs.</p>
+
+<h2>Kneading sequences</h2>
+<p>The itinerary of the critical value f(c) is the <em>kneading sequence</em> of the map. It is the largest itinerary any point can have (in the order above), so it describes which strings are allowed at all. As the parameter of the logistic family increases, the kneading sequence increases with it, and a periodic kneading sequence marks a superstable or attracting cycle: at r = 3.83, inside the period-3 window, it is RLR repeated.</p>
+
+<h2>Sharkovskii's order</h2>
+<p>Order the positive whole numbers like this:</p>
+\[ 3 \triangleright 5 \triangleright 7 \triangleright \cdots \triangleright 2\cdot3 \triangleright 2\cdot5 \triangleright \cdots \triangleright 4\cdot3 \triangleright 4\cdot5 \triangleright \cdots \triangleright 8 \triangleright 4 \triangleright 2 \triangleright 1 . \]
+<p>First the odd numbers from 3 up, then twice them, then four times them, and so on, and at the very end the powers of two going down. Sharkovskii's theorem says that a continuous map of an interval with a point of least period n has points of every least period that comes after n in this order. Period 3 is first, so it forces every period: "period three implies chaos". And a map with only finitely many periods has only powers of two, which is the period-doubling cascade seen from the other end.</p>
+<p><code>sharkovskii.compare(a, b)</code> is a comparison function for this order, <code>forces(a, b)</code> answers whether period a forces period b, and <code>forced(n, limit)</code> lists what a period forces.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>itinerary(f, x0, n, { critical })</td><td>a string of L, R and C</td></tr>
+<tr><td>kneading(f, n, { critical })</td><td>the itinerary of f(c)</td></tr>
+<tr><td>sharkovskii.order(limit), .compare(a, b), .forces(a, b), .forced(n, limit)</td><td></td></tr>
+</table></div>
+<template data-runbox>
+PRINT("logistic r = 4 from 1/10:", itinerary(logistic(4), "1/10", 40));
+PRINT("tent map from 1/7:      ", itinerary(tent(2), "1/7", 12), " (1/7 = 0.001001…₂ has period 3)");
+for (const r of ["3.2", "3.5", "3.83", "3.9", "4"]) PRINT(`kneading sequence at r = ${r}:`, kneading(logistic(r), 24));
+PRINT("Sharkovskii's order up to 20:", sharkovskii.order(20).join(" ▷ "));
+PRINT("period 6 forces:", sharkovskii.forced(6, 20).join(", "));
+PRINT("does 5 force 3?", sharkovskii.forces(5, 3), "  does 3 force 5?", sharkovskii.forces(3, 5));
+// the period-3 window really does contain a point of period 5:
+logistic("3.84").periodicPointsIn(5, ["0.1", "0.99"], { digits: 12 }).filter((p) =&gt; p.leastPeriod === 5).length + " points of period 5 at r = 3.84"
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

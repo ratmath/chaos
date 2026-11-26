@@ -18,16 +18,56 @@
 <article>
 <div class="eyebrow">Reference</div>
 <h1>Everything in the library</h1>
-<p class="lede">Every export of <code>@ratmath/chaos</code> will be listed here with what it takes and what it returns.</p>
-<p class="notice"><strong>Planned, not built yet.</strong> This site is the frame the package will grow into. The full plan is in the <a href="https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos">library roadmap</a>, and the <a href="https://ratmath.com/shelf/">RatMath Shelf</a> page lists what exists across all the libraries.</p>
-<div class="tablewrap"><table class="ref" id="ref">
+<p class="lede">Every export of <code>@ratmath/chaos</code>, with what it takes and what it returns. Numbers go in as whole numbers, fractions or decimal strings; a JavaScript number that is not whole is refused where an exact value is meant.</p>
+
+<h2>Maps</h2>
+<div class="tablewrap"><table class="ref">
 <tr><th>Export</th><th>What it does</th></tr>
-<tr><td>plan</td><td>The list of planned phases, each { phase, contents, estimate }. It is here so the package has something to load while it is empty, and it shrinks as phases are built.</td></tr>
+<tr><td>map(formula, { variable, params, critical })</td><td>A map of the line from a formula in analytic's notation. Returns an <code>IteratedMap</code>.</td></tr>
+<tr><td>logistic(r = 4), tent(mu = 2), quadratic(c = -2)</td><td>The standard families \(rx(1 - x)\), \(\mu(\tfrac12 - |x - \tfrac12|)\) and \(x^2 + c\).</td></tr>
+<tr><td>doubling(x0, { base })</td><td>\(x \mapsto 2x \bmod 1\) on a rational, exactly: { orbit, preperiod, period, cycle, floatReachesZeroAt }.</td></tr>
+<tr><td>IteratedMap</td><td>The class. Fields: text, variable, params, polynomial (coefficients, or null), tree.</td></tr>
+</table></div>
+
+<h2>Methods of a map</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Method</th><th>What it does</th></tr>
+<tr><td>at(x), enclose(X, bits), float(x), derivativeAt(x)</td><td>One step: exact, as an interval, in doubles; and f′.</td></tr>
+<tr><td>orbit(x0, n, { maxBits })</td><td>The true orbit in rationals. See <a href="orbits.html">Orbits</a>.</td></tr>
+<tr><td>enclosedOrbit(x0, n, { digits, bits })</td><td>The true orbit as intervals: { terms, bits, width }.</td></tr>
+<tr><td>floatOrbit(x0, n), cobweb(x0, n)</td><td>The orbit in doubles; the corner points of a cobweb diagram.</td></tr>
+<tr><td>compare(x0, n, { digits })</td><td>Float beside true: { rows, parted }.</td></tr>
+<tr><td>fixedPoints(), periodicPoints(n)</td><td>Exact points of least period n with multiplier and stability. See <a href="periodic-points.html">Periodic points</a>.</td></tr>
+<tr><td>cycles(n)</td><td>The points grouped into cycles, each with its multiplier and Lyapunov exponent.</td></tr>
+<tr><td>periodicPointsIn(n, [a, b], { digits })</td><td>Certified periodic points of any formula.</td></tr>
+<tr><td>iterate(n), criticalPoints([a, b]), with(params)</td><td>\(f^n\) as coefficients; zeros of f′; the family at other parameters.</td></tr>
+</table></div>
+
+<h2>Exponents, bifurcations, symbols</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>lyapunov(f, x0, { steps, transient, digits })</td><td>The average of log|f′| along the true orbit, enclosed. See <a href="lyapunov.html">Lyapunov exponents</a>.</td></tr>
+<tr><td>sensitivity(f, x0, delta, { steps, threshold })</td><td>The separation of two true orbits, step by step.</td></tr>
+<tr><td>bifurcationPoint(family, { parameter, period, multiplier, near, digits })</td><td>A parameter where a cycle's multiplier is ±1, proven. See <a href="bifurcations.html">Bifurcations</a>.</td></tr>
+<tr><td>periodDoubling(family, { parameter, levels, start })</td><td>The cascade, each doubling proven, and the ratios of the gaps.</td></tr>
+<tr><td>periodicWindow(family, { parameter, period, near })</td><td>Birth, superstable parameter and first doubling of a window.</td></tr>
+<tr><td>superstable(family, { parameter, period, range, critical })</td><td>Parameters where the critical point has the given period.</td></tr>
+<tr><td>bifurcationDiagram(family, { parameter, range, count, transient, keep })</td><td>Data for the picture, in doubles, marked estimated.</td></tr>
+<tr><td>itinerary(f, x0, n), kneading(f, n)</td><td>Symbol strings on true orbits. See <a href="symbolic-dynamics.html">Symbolic dynamics</a>.</td></tr>
+<tr><td>sharkovskii</td><td>{ order(limit), compare(a, b), forces(a, b), forced(n, limit) }.</td></tr>
+<tr><td>ChaosError</td><td>What the library throws, with a <code>code</code>: inexact, too-large, escapes, not-polynomial, not-proven and others.</td></tr>
+<tr><td>plan</td><td>The phases still to come, each { phase, contents, estimate }.</td></tr>
 </table></div>
 <template data-runbox>
-// The one export so far.
-for (const p of plan) PRINT(`phase ${p.phase}:`, p.contents, `(${p.estimate} lines)`);
-plan.length
+// Every map method on one small example.
+const f = logistic("7/2");
+PRINT(String(f));
+PRINT("at 1/2:", String(f.at("1/2")), " f′(1/2):", String(f.derivativeAt("1/2")), " float:", f.float(0.5));
+PRINT("f² =", f.iterate(2).join(", "), "(coefficients, constant first)");
+PRINT("fixed:", f.fixedPoints().map((p) =&gt; `${p.text} (${p.stability})`).join(", "));
+PRINT("4-cycle:", f.cycles(4).map((c) =&gt; `${c.values.map((v) =&gt; v.toString(6)).join(" → ")} (${c.stability})`).join("; "));
+PRINT("still planned:", plan.map((p) =&gt; p.phase).join(", "));
+kneading(f, 16)
 </template>
 </article>
 </main>

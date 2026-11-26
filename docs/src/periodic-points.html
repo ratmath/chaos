@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Periodic points · RatMath Chaos</title>
+<meta name="description" content="Fixed and periodic points of polynomial maps as exact algebraic numbers, with multipliers and stability; certified periodic points for any formula.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Periodic points and stability</h1>
+<p class="lede">A point of period n satisfies \(f^n(x) = x\). For a polynomial map that is a polynomial equation, so its solutions are algebraic numbers and can be had exactly.</p>
+<pre><code>logistic(4).fixedPoints();          // 0 and 3/4, with multipliers 4 and −2
+logistic(4).periodicPoints(2);      // (5 ± √5)/8
+logistic("3.2").cycles(2);          // one attracting 2-cycle, multiplier 4/25
+map("sin(pi*x)").periodicPointsIn(1, [0, 1]);   // certified, for a map that is not a polynomial</code></pre>
+<h2>Least period</h2>
+<p>The roots of \(f^n(x) - x\) include the points of every period dividing n. <code>periodicPoints(n)</code> removes them: it divides out the common factors with \(f^d(x) - x\) for each proper divisor d, then asks <code>@ratmath/algebraic</code> for the real roots of what is left. Each comes back as an algebraic number: a fraction when it is rational, a closed form such as (5 − √5)/8 when it is quadratic, and otherwise its minimal polynomial with an interval that can be refined without limit.</p>
+
+<h2>The multiplier</h2>
+<p>By the chain rule the derivative of \(f^n\) is the same at every point of a cycle,</p>
+\[ (f^n)'(x_0) = f'(x_0)\,f'(x_1)\cdots f'(x_{n-1}), \]
+<p>and this number, the multiplier, decides what nearby orbits do. If its absolute value is below 1 the cycle attracts them, above 1 it repels them. The multiplier is returned as an enclosure, and the stability is stated only when the enclosure settles it.</p>
+<p>The borderline cases are where things change, so they are decided exactly. The multiplier is a polynomial in the root; it equals 1, −1 or 0 exactly when that polynomial minus the constant is divisible by the root's minimal polynomial, which is a finite computation with no rounding. A multiplier of exactly 0 is reported as <code>"superattracting"</code>, and of exactly ±1 as <code>"neutral"</code>: for r = 3 the fixed point 2/3 of the logistic map has multiplier −1, the moment of the first period doubling.</p>
+
+<h2>Cycles</h2>
+<p><code>cycles(n)</code> groups the points into orbits by applying f to each and seeing which point it lands on (the intervals are refined until that is unambiguous). Each cycle carries its Lyapunov exponent \(\tfrac1n\log|\text{multiplier}|\), which for a cycle is exact up to the enclosure of the logarithm.</p>
+
+<h2>Maps that are not polynomials</h2>
+<p>For any formula, <code>periodicPointsIn(n, [a, b])</code> finds the zeros of \(f^n(x) - x\) in an interval with analytic's certified zero finder: each returned interval is proven to contain exactly one. The multiplier is enclosed along the enclosed cycle.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>f.fixedPoints(), f.periodicPoints(n)</td><td>[{ value, text, period, multiplier, stability, exactMultiplier }]</td></tr>
+<tr><td>f.cycles(n)</td><td>[{ period, points, values, multiplier, stability, lyapunov }]</td></tr>
+<tr><td>f.periodicPointsIn(n, [a, b], { digits })</td><td>[{ value, period, leastPeriod, multiplier, stability }]</td></tr>
+<tr><td>f.iterate(n)</td><td>the coefficients of \(f^n\), constant term first</td></tr>
+<tr><td>f.criticalPoints([a, b])</td><td>where f′ = 0</td></tr>
+</table></div>
+<template data-runbox>
+const f = logistic(4);
+for (const p of f.fixedPoints()) PRINT(`fixed point ${p.text}: multiplier ${p.multiplier.low.toDecimal(6)}, ${p.stability}`);
+for (const p of f.periodicPoints(2)) PRINT(`period 2: ${p.text}, multiplier ${p.multiplier.low.toDecimal(6)}`);
+for (const c of f.cycles(3)) PRINT(`3-cycle ${c.points.join(" → ")}  multiplier ${c.multiplier.low.toDecimal(4)}  exponent ${c.lyapunov.low.toDecimal(10)} (ln 2 = ${Math.log(2).toFixed(10)})`);
+PRINT("degree of the equation for period 3:", f.iterate(3).length - 1);
+
+for (const r of ["2", "3", "3.2", "3.5"]) {
+  const g = logistic(r);
+  PRINT(`r = ${r}: fixed point ${g.fixedPoints()[1].text} is ${g.fixedPoints()[1].stability};`, "2-cycles:", g.cycles(2).map((c) =&gt; `${c.points.join(", ")} (${c.stability})`).join("; ") || "none");
+}
+map("sin(pi*x)").periodicPointsIn(1, [0, 1]).map((p) =&gt; `${p.value.low.toDecimal(12)} ${p.stability}`)
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>
