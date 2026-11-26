@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cellular automata · RatMath Chaos</title>
+<meta name="description" content="Wolfram's elementary rules and Conway's Life on an unbounded plane, with exact classification of still lifes, oscillators and spaceships.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Cellular automata</h1>
+<p class="lede">Cells that are 0 or 1, updated by a local rule: the discrete end of dynamics, where everything is exact and yet rule 30 looks random and Life can compute anything.</p>
+<pre><code>elementary(90).fromCell(15);                // rows of Pascal's triangle mod 2
+elementary(110).equivalents;                 // [110, 124, 137, 193]
+elementary(184).cycle("10101010");           // { transient: 0, period: 2 }
+life(patterns.glider).classify();            // { kind: "spaceship", period: 4, speed: "c/4", … }
+life("OOO\nO..\nO..", { rule: "B36/S23" }); // HighLife</code></pre>
+
+<h2>Elementary rules</h2>
+<p>A row of cells, each new cell determined by itself and its two neighbours. There are \(2^3 = 8\) neighbourhoods and so \(2^8 = 256\) rules, numbered by Wolfram: bit n of the rule number is the new cell for the neighbourhood whose binary value is n. Reflecting left and right, or swapping 0 and 1, turns one rule into another that behaves the same way, which cuts 256 rules to 88 classes; <code>equivalents</code> lists a rule's class.</p>
+<p>Rule 90 is additive: the new cell is the sum mod 2 of the two neighbours. From one live cell, row t is then the binomial coefficients \(\binom{t}{k}\) mod 2, which is Sierpinski's triangle again, and by Lucas's theorem \(\binom{t}{k}\) is odd exactly when the binary digits of k are a subset of those of t. <code>additive</code> tests the linearity condition directly and finds exactly the eight rules 0, 60, 90, 102, 150, 170, 204, 240.</p>
+<p>On a ring of n cells there are \(2^n\) rows, so every orbit eventually repeats; <code>cycle</code> finds when and with what period. Rule 30 from one cell looks random enough that its centre column was used as a random number generator, and rule 110 was proved capable of universal computation.</p>
+
+<h2>Life</h2>
+<p>Conway's Game of Life on the unbounded plane: a dead cell with exactly 3 live neighbours is born, a live one with 2 or 3 survives. Other rules are written the same way, as "B3/S23". Only live cells are stored, so a glider can travel forever.</p>
+<p><code>classify</code> runs a pattern and compares each generation's shape, moved to the origin, with all earlier ones, cell by cell. A repeat in the same place is a still life or an oscillator with that period; a repeat that has moved is a spaceship, with its speed in cells per generation as a fraction of c, the speed of light (one cell per step). The glider moves one cell diagonally every 4 generations, c/4; the lightweight spaceship moves 2 cells in 4, c/2. Patterns that grow forever, like the Gosper glider gun, never repeat and come back as "unknown" within the limit.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>elementary(rule)</td><td>Elementary: table, mirror, complement, equivalents, additive</td></tr>
+<tr><td>step(row, { boundary }), run(initial, steps), fromCell(steps)</td><td>Uint8Array rows</td></tr>
+<tr><td>cycle(initial, { limit })</td><td>{ transient, period }</td></tr>
+<tr><td>showRows(rows, on, off)</td><td>Rows as text</td></tr>
+<tr><td>life(cells, { rule })</td><td>Life: population, step(), run(n), bounds(), classify(), toString()</td></tr>
+<tr><td>patterns</td><td>block, blinker, toad, beacon, glider, lwss, pulsar, rpentomino, gosperGun</td></tr>
+</table></div>
+<template data-runbox>
+PRINT(showRows(elementary(90).fromCell(15)));
+PRINT("");
+PRINT(showRows(elementary(30).fromCell(15)));
+PRINT("rule 30 is equivalent to", elementary(30).equivalents.join(", "));
+PRINT("additive rules:", Array.from({ length: 256 }, (_, r) =&gt; r).filter((r) =&gt; elementary(r).additive).join(", "));
+for (const name of ["block", "blinker", "pulsar", "glider", "lwss"]) {
+  const c = life(patterns[name]).classify();
+  PRINT(name.padEnd(8), c.kind, c.period ?? "", c.speed ?? "");
+}
+const r = life(patterns.rpentomino);
+PRINT("R-pentomino: population after 100 generations", r.run(100).population);
+life(patterns.glider).run(4).toString()
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

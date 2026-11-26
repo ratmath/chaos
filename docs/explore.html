@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=2b232dc77e">
-<script type="module" src="assets/site.js?v=2b232dc77e"></script>
+<link rel="stylesheet" href="assets/style.css?v=c2fcc9e685">
+<script type="module" src="assets/site.js?v=c2fcc9e685"></script>
 </head>
 <body>
 <div class="shell">
@@ -22,7 +22,7 @@
 <article>
 <div class="eyebrow">Explore</div>
 <h1>Explore</h1>
-<p class="lede">Type a map and a starting point. The page draws the cobweb, lists the true orbit beside the floating-point one, and finds the periodic points.</p>
+<p class="lede">Type a map and a starting point. The page draws the cobweb, lists the true orbit beside the floating-point one, and finds the periodic points. Further down: escape-time pictures with every pixel proved or left undecided, attractors, and cellular automata.</p>
 
 <h2>A map and an orbit</h2>
 <div class="demo">
@@ -45,6 +45,34 @@
 <div id="ex-per"></div>
 </div>
 <p>For a polynomial map these are exact algebraic numbers. The Lyapunov exponent in the first panel is the certified average along the true orbit.</p>
+
+<h2>Escape-time pictures</h2>
+<div class="demo">
+<div class="demo-row">
+<label>Picture<select id="ex-kind"><option value="m">Mandelbrot set</option><option value="j">Julia set of z² + c</option><option value="n">Newton basins of p</option></select></label>
+<label>c or p<input id="ex-c" class="text" value="-1" size="16" spellcheck="false"></label>
+<label>Re<input id="ex-re" class="text" value="-2, 1/2" size="10" spellcheck="false"></label>
+<label>Im<input id="ex-im" class="text" value="-5/4, 5/4" size="10" spellcheck="false"></label>
+<button id="ex-go">Draw</button>
+</div>
+<div id="ex-pic"></div>
+</div>
+<p>Dark pixels are proved inside (or, for Newton, a colour per proved root), pale ones proved outside, and the accent colour marks undecided pixels, which gather on the boundary. For Newton, give the coefficients highest first, separated by commas: <code>1, 0, 0, -1</code> is z³ − 1. Try the Mandelbrot set on Re −3/4, −1/2 and Im 0, 1/4, or the Julia set of c = −0.12 + 0.75i.</p>
+
+<h2>Attractors and automata</h2>
+<div class="demo">
+<div class="demo-row">
+<label>Attractor<select id="ex-ifs"><option>sierpinski</option><option>carpet</option><option>vicsek</option><option>cantorDust</option><option>heighway</option><option>levyDragon</option><option selected>barnsley</option></select></label>
+<label>Points<input id="ex-pts" class="text" type="number" min="1000" max="200000" value="40000" size="7"></label>
+</div>
+<div id="ex-att"></div>
+<div class="demo-row">
+<label>Elementary rule<input id="ex-rule" class="text" type="number" min="0" max="255" value="30" size="5"></label>
+<label>Steps<input id="ex-steps" class="text" type="number" min="1" max="200" value="80" size="5"></label>
+</div>
+<div id="ex-ca"></div>
+</div>
+<p>The chaos game is an estimate drawn from floats, and the page says the dimension it would have; the automaton is exact.</p>
 <section class="runbox" aria-label="Runnable code">
   <div class="runbox-head"><strong>Try it</strong><span>Edit the code and run it with <code>@ratmath/chaos</code> and Core's <code>Rational</code> in scope. The last line's value is shown; <code>PRINT(…)</code> adds lines, <code>TEX(…)</code> typesets math.</span></div>
   <textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code">// The page above, as code.
@@ -61,7 +89,7 @@ f.periodicPoints(2).map((p) =&gt; `${p.text}: ${p.stability}`)</textarea>
 </main>
 </div>
 <script type="module">
-import { A as C, h } from "./assets/site.js?v=2b232dc77e";
+import { A as C, h } from "./assets/site.js?v=c2fcc9e685";
 const $ = (id) => document.getElementById(id);
 const fail = (out, e) => out.replaceChildren(h("div", { class: "out err" }, e.message));
 const svg = (tag, attrs, ...kids) => {
@@ -137,6 +165,95 @@ const all = () => {
 for (const id of ["ex-map", "ex-r", "ex-x0", "ex-n"]) $(id).addEventListener("input", all);
 $("ex-p").addEventListener("input", periodPanel);
 all();
+function canvasOf(w, h, scale) {
+  const cv = document.createElement("canvas");
+  cv.width = w;
+  cv.height = h;
+  cv.style.cssText = `width:${w * scale}px;max-width:100%;image-rendering:pixelated;border:1px solid #8884;border-radius:8px`;
+  return cv;
+}
+const pair = (s) => s.split(",").map((t) => t.trim());
+function picPanel() {
+  const out = $("ex-pic");
+  try {
+    const kind = $("ex-kind").value;
+    const opts = { re: pair($("ex-re").value), im: pair($("ex-im").value), width: 160, height: 100 };
+    const G = kind === "m" ? C.mandelbrot({ ...opts, maxIter: 300 }) : kind === "j" ? C.julia($("ex-c").value.trim(), opts) : C.newtonBasins(pair($("ex-c").value), opts);
+    const cv = canvasOf(G.width, G.height, 3);
+    const ctx = cv.getContext("2d");
+    const img = ctx.createImageData(G.width, G.height);
+    const accent = [194, 65, 12];
+    const palette = [[40, 40, 48], [37, 99, 235], [22, 163, 74], [202, 138, 4], [147, 51, 234], [219, 39, 119], [8, 145, 178], [100, 100, 100], [180, 83, 9]];
+    for (let j = 0; j < G.height; j++)
+      for (let i = 0; i < G.width; i++) {
+        const k = G.at(i, j);
+        const col = k === 0 ? accent : G.labels ? palette[(k - 1) % palette.length] : k === 1 ? [30, 30, 36] : [235, 232, 225];
+        const o = 4 * ((G.height - 1 - j) * G.width + i);
+        img.data.set([...col, 255], o);
+      }
+    ctx.putImageData(img, 0, 0);
+    out.replaceChildren(cv, h("p", {}, String(G)));
+  } catch (e) {
+    fail(out, e);
+  }
+}
+function attractorPanel() {
+  const out = $("ex-att");
+  try {
+    const S = C.attractors[$("ex-ifs").value]();
+    const n = Math.max(1000, Math.min(200000, Number($("ex-pts").value) || 40000));
+    const g = S.chaosGame(n, { seed: 1 });
+    const P = g.points;
+    let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < n; i++) {
+      x0 = Math.min(x0, P[2 * i]); x1 = Math.max(x1, P[2 * i]);
+      y0 = Math.min(y0, P[2 * i + 1]); y1 = Math.max(y1, P[2 * i + 1]);
+    }
+    const W = 320, side = Math.max(x1 - x0, y1 - y0) || 1;
+    const cv = canvasOf(W, W, 1);
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "rgb(194,65,12)";
+    for (let i = 0; i < n; i++) ctx.fillRect(((P[2 * i] - x0) / side) * (W - 2), W - 2 - ((P[2 * i + 1] - y0) / side) * (W - 2), 1, 1);
+    let dim;
+    try {
+      const d = S.similarityDimension({ bits: 24 });
+      dim = d.kind === "exact" ? `similarity dimension ${d.value} (exact)` : `similarity dimension ${d.formula} ≈ ${d.interval[0].toDecimal(6)} (certified)`;
+    } catch (e) {
+      dim = "not made of similarities, so no similarity dimension";
+    }
+    out.replaceChildren(cv, h("p", {}, `${S.name}: ${S.maps.length} maps, ${dim}; box counting estimates ${C.boxCounting(g).dimension.toFixed(3)}.`));
+  } catch (e) {
+    fail(out, e);
+  }
+}
+function caPanel() {
+  const out = $("ex-ca");
+  try {
+    const rule = Number($("ex-rule").value);
+    const steps = Math.max(1, Math.min(200, Number($("ex-steps").value) || 80));
+    const E = C.elementary(rule);
+    const rows = E.fromCell(steps);
+    const cv = canvasOf(rows[0].length, rows.length, Math.max(1, Math.floor(640 / rows[0].length)));
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "rgb(194,65,12)";
+    rows.forEach((r, t) => r.forEach((c, i) => c && ctx.fillRect(i, t, 1, 1)));
+    out.replaceChildren(cv, h("p", {}, `rule ${rule}: equivalent rules ${E.equivalents.join(", ")}${E.additive ? "; additive" : ""}.`));
+  } catch (e) {
+    fail(out, e);
+  }
+}
+$("ex-go").addEventListener("click", picPanel);
+$("ex-kind").addEventListener("change", () => {
+  const k = $("ex-kind").value;
+  const presets = { m: ["-1", "-2, 1/2", "-5/4, 5/4"], j: ["-1", "-2, 2", "-5/4, 5/4"], n: ["1, 0, 0, -1", "-2, 2", "-5/4, 5/4"] };
+  [$("ex-c").value, $("ex-re").value, $("ex-im").value] = presets[k];
+  picPanel();
+});
+for (const id of ["ex-ifs", "ex-pts"]) $(id).addEventListener("change", attractorPanel);
+for (const id of ["ex-rule", "ex-steps"]) $(id).addEventListener("input", caPanel);
+picPanel();
+attractorPanel();
+caPanel();
 </script>
 </body>
 </html>

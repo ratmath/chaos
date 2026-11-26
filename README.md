@@ -30,6 +30,10 @@ itinerary(f, "1/10", 12);                    // "LLRLRRRLLRLR"
 | Exponents | `lyapunov` (certified average along the true orbit), `sensitivity` |
 | Bifurcations | `bifurcationPoint`, `periodDoubling`, `periodicWindow`, `superstable` (all proven); `bifurcationDiagram` (estimated) |
 | Symbolic dynamics | `itinerary`, `kneading`, `sharkovskii` |
+| Fractals | `IFS`, `Affine`, `attractors` (exact stages, contraction bounds, similarity dimension exact or certified, chaos game estimated), `moran`, `boxCounting`; `cantor({ base, digits })` with exact membership of fractions |
+| L-systems | `lsystem`, `lsystems`: symbol counts by matrix power; turtle paths exact in a + b√3 at multiples of 30° |
+| Cellular automata | `elementary(rule)` (equivalents, additivity, cycles), `life(cells, { rule })` with `classify` (still life, oscillator, spaceship and speed) |
+| Escape-time pictures | `mandelbrot`, `julia`, `newtonBasins`: every pixel proved inside, proved outside or undecided; `mandelbrotPoint`, `juliaPoint` for exact points |
 
 Three kinds of answer, each labelled: exact (rationals and algebraic numbers),
 certified (intervals proven to contain the value) and estimated (pictures and
@@ -40,8 +44,6 @@ observed limits).
 | Phase | Contents |
 |---|---|
 | 3 | Maps of the plane; flows, sections, periodic orbits, bifurcations |
-| 4 | Iterated function systems, Cantor sets, dimensions, L-systems, cellular automata |
-| 5 | Julia and Mandelbrot sets, Newton basins |
 | 6 | Pictures |
 
 The plan is in the
@@ -51,8 +53,9 @@ and `plan` exports the list.
 ## Layout
 
 - `index.js`, `src/`: the library (`tree.js` evaluators, `map.js` maps and
-  periodic points, `dynamics.js` exponents, bifurcations and symbols).
-- `vendor/analytic`, `vendor/algebraic`: git submodules, used as workspaces
+  periodic points, `dynamics.js` exponents, bifurcations and symbols,
+  `fractals.js`, `lsystem.js`, `automata.js`, `escape.js`).
+- `vendor/analytic`, `vendor/algebraic`, `vendor/complex`: git submodules, used as workspaces
   until those packages are on npm. Clone with `--recurse-submodules`.
 - `tests/`: `bun run test`.
 - `docs/src/*.html`: the docs pages; `bun run docs:build` writes `docs/*.html`,

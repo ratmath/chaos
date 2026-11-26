@@ -58,6 +58,27 @@
 <tr><td>ChaosError</td><td>What the library throws, with a <code>code</code>: inexact, too-large, escapes, not-polynomial, not-proven and others.</td></tr>
 <tr><td>plan</td><td>The phases still to come, each { phase, contents, estimate }.</td></tr>
 </table></div>
+<h2>Fractals</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>new IFS(maps, { name, probabilities }), Affine</td><td>An iterated function system of affine maps with rational coefficients: stage(n), step, fixedPoint(i), contraction(), similarityDimension(), chaosGame(n, { seed }). See <a href="iterated-function-systems.html">Iterated function systems</a>.</td></tr>
+<tr><td>attractors</td><td>sierpinski, carpet, vicsek, cantorDust, heighway, levyDragon, barnsley.</td></tr>
+<tr><td>moran(ratios, { bits })</td><td>The s with Σ rᵢ^s = 1: exact or certified.</td></tr>
+<tr><td>boxCounting(points, { scales }), seeded(seed)</td><td>An estimated box dimension; a repeatable random generator.</td></tr>
+<tr><td>cantor({ base, digits })</td><td>A DigitCantor: contains(q), expansion(q), stage(n), measure(n), dimension(). See <a href="cantor-sets.html">Cantor sets</a>.</td></tr>
+<tr><td>lsystem(spec), lsystems, LSystem, Q3</td><td>L-systems: generate(n), counts(n), turtle(n). See <a href="l-systems.html">L-systems</a>.</td></tr>
+</table></div>
+
+<h2>Automata and pictures</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>elementary(rule), Elementary, showRows(rows)</td><td>Wolfram's rules: table, mirror, complement, equivalents, additive, step, run, fromCell, cycle. See <a href="cellular-automata.html">Cellular automata</a>.</td></tr>
+<tr><td>life(cells, { rule }), Life, patterns</td><td>Life and its relatives on the unbounded plane: step, run, population, bounds, classify, toString.</td></tr>
+<tr><td>mandelbrot(options), julia(c, options)</td><td>PixelGrid of proved inside / outside / undecided pixels. See <a href="mandelbrot-and-julia.html">Mandelbrot and Julia sets</a>.</td></tr>
+<tr><td>mandelbrotPoint(c), juliaPoint(c, z0)</td><td>One exact point: { verdict, reason, period or escape }.</td></tr>
+<tr><td>newtonBasins(coefficients, options)</td><td>PixelGrid labelled by proved root. See <a href="newton-basins.html">Newton basins</a>.</td></tr>
+<tr><td>PixelGrid</td><td>width, height, kind, counts, at(i, j), toText(chars).</td></tr>
+</table></div>
 <template data-runbox>
 // Every map method on one small example.
 const f = logistic("7/2");

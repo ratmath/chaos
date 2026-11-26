@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iterated function systems · RatMath Chaos</title>
+<meta name="description" content="Attractors of affine maps with rational coefficients: exact stages, contraction bounds, similarity dimensions, the chaos game.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Iterated function systems</h1>
+<p class="lede">A handful of maps that each shrink the plane determine one compact set, the attractor, that is the union of its own images. With rational coefficients its stages are exact, and its dimension is exact or proven.</p>
+<pre><code>const S = attractors.sierpinski();          // three maps (x, y) → (x/2, y/2) + shift
+S.stage(5);                                  // 243 exact rational points
+S.contraction();                             // { bounds: [1/2, 1/2, 1/2], contracting: true }
+S.similarityDimension();                     // log 3 / log 2, as a certified interval
+S.chaosGame(20000, { seed: 7 });             // float points, kind "estimated"
+new IFS([{ a: "1/3", d: "1/3" }, { a: "1/3", d: "1/3", e: "2/3" }]);   // the Cantor set on a line</code></pre>
+
+<h2>Hutchinson's theorem</h2>
+<p>Let \(f_1, \dots, f_N\) be maps of the plane with \(|f_i(p) - f_i(q)| \le r_i |p - q|\) and every \(r_i &lt; 1\). The map on compact sets \(F(K) = f_1(K) \cup \dots \cup f_N(K)\) is then a contraction in the Hausdorff distance, so it has exactly one fixed set \(A = F(A)\), and \(F^n(K) \to A\) from any start. That set is the attractor.</p>
+<p>Each map here is affine, \((x, y) \mapsto (ax + by + e,\ cx + dy + f)\), with rational coefficients, written as an <code>Affine</code> or as a plain object such as <code>{ a: "1/2", d: "1/2", e: "1/4", f: "1/2" }</code>. <code>stage(n)</code> applies \(F\) n times to the fixed point of the first map (which lies in A), so every point it returns is a point of the attractor, exactly.</p>
+
+<h2>Is it a contraction?</h2>
+<p>The Lipschitz constant of an affine map is the largest singular value of its matrix, \(\sigma = \sqrt{\lambda_{\max}(M^{\mathsf T} M)}\), usually irrational. <code>contraction()</code> returns a rational upper bound for each map, from \(\lambda_{\max} = \tfrac{t + \sqrt{t^2 - 4\det^2}}{2}\) with \(t = a^2+b^2+c^2+d^2\), every square root rounded up. When all bounds are below 1 the attractor exists. The bound is exact for similarities, so the dragons' \(1/\sqrt2\) comes out as the rational just above it.</p>
+
+<h2>Similarity dimension</h2>
+<p>When every map is a similarity with ratio \(r_i\) (a rotation or reflection times a scale), the similarity dimension is the s with</p>
+\[ r_1^{\,s} + \dots + r_N^{\,s} = 1 \]
+<p>(Moran's equation). If the pieces overlap little (the open set condition), this is also the Hausdorff dimension. With equal ratios, \(s = \log N / \log(1/r)\): exact when that is rational, as for the Heighway dragon (two pieces of ratio \(1/\sqrt2\), so s = 2), and otherwise a certified interval, as for Sierpinski's \(\log 3/\log 2\). Unequal ratios are solved by bisection with each term enclosed, so <code>moran(["1/2", "1/4"])</code> encloses \(\log_2\varphi\), the golden ratio's logarithm. The open set condition is not checked.</p>
+
+<h2>The chaos game, and box counting</h2>
+<p>Picking one map at random each step and applying it to a point gives points that fill the attractor (the probabilities matter for Barnsley's fern, where the stem map is chosen 1% of the time). The library seeds its own generator, so a picture can be repeated, and returns floats with <code>kind: "estimated"</code>. <code>boxCounting(points)</code> counts the boxes of side \(2^{-k}\) the points meet and fits a line: an estimate of the box dimension, which for Sierpinski comes out near 1.585.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>new IFS(maps, { name, probabilities })</td><td>An IFS; maps are Affine or { a, b, c, d, e, f }</td></tr>
+<tr><td>stage(n, start), step(points), fixedPoint(i)</td><td>Exact rational points</td></tr>
+<tr><td>contraction()</td><td>{ bounds, contracting }</td></tr>
+<tr><td>similarityDimension(), moran(ratios)</td><td>{ kind: "exact" | "certified", value, interval, formula }</td></tr>
+<tr><td>chaosGame(n, { seed, skip }), boxCounting(points, { scales })</td><td>Estimated: Float64Array points; { dimension, rows }</td></tr>
+<tr><td>attractors</td><td>sierpinski, carpet, vicsek, cantorDust, heighway, levyDragon, barnsley</td></tr>
+</table></div>
+<template data-runbox>
+const S = attractors.sierpinski();
+const pts = S.stage(3);
+PRINT(`stage 3 has ${pts.length} exact points, e.g.`, pts.slice(0, 4).map(([x, y]) =&gt; `(${x}, ${y})`).join(" "));
+PRINT("contraction bounds:", S.contraction().bounds.join(", "));
+const d = S.similarityDimension();
+PRINT(`dimension ${d.formula} in [${d.interval[0].toDecimal(10)}, ${d.interval[1].toDecimal(10)}]`);
+PRINT("Heighway dragon:", attractors.heighway().similarityDimension().value.toString(), "(exact)");
+const g = moran(["1/2", "1/4"]);
+PRINT("(1/2)^s + (1/4)^s = 1 at s ≈", g.interval[0].toDecimal(10), "  log2(golden ratio) =", Math.log2((1 + Math.sqrt(5)) / 2).toFixed(10));
+// a small picture from the chaos game
+const fern = attractors.barnsley().chaosGame(30000, { seed: 3 });
+const W = 40, H = 24, grid = Array.from({ length: H }, () =&gt; Array(W).fill(" "));
+for (let i = 0; i &lt; fern.count; i++) {
+  const x = Math.floor(((fern.points[2 * i] + 2.7) / 5.5) * W), y = H - 1 - Math.floor((fern.points[2 * i + 1] / 10.01) * H);
+  if (x &gt;= 0 &amp;&amp; x &lt; W &amp;&amp; y &gt;= 0 &amp;&amp; y &lt; H) grid[y][x] = "*";
+}
+PRINT("box dimension of the Sierpinski triangle, estimated:", boxCounting(S.chaosGame(20000)).dimension.toFixed(3));
+grid.map((r) =&gt; r.join("")).join("\n")
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>
