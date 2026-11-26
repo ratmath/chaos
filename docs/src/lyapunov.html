@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lyapunov exponents · RatMath Chaos</title>
+<meta name="description" content="Lyapunov exponents as certified averages along true orbits, and sensitive dependence measured exactly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Lyapunov exponents and sensitivity</h1>
+<p class="lede">Two orbits that start a distance δ apart are, after n steps, about \(\delta\,e^{\lambda n}\) apart. The number λ is the Lyapunov exponent, and a positive one is what "chaotic" means in practice.</p>
+<pre><code>lyapunov(logistic(4), "1/10", { steps: 300 });           // { value, float, bits, kind }
+lyapunov(logistic("3.2"), "1/10", { steps: 200, transient: 100 });
+sensitivity(logistic(4), "1/10", "1/1000000000000");     // { rows, reaches, rate, factor }</code></pre>
+<h2>The definition</h2>
+<p>The distance between nearby orbits is multiplied at each step by about \(|f'(x_i)|\), so</p>
+\[ \lambda = \lim_{n\to\infty} \frac1n \sum_{i=0}^{n-1} \log\bigl|f'(x_i)\bigr| . \]
+<p><code>lyapunov</code> computes the average over <code>steps</code> terms (after discarding <code>transient</code>). What makes it different from the usual program is that the \(x_i\) are the true orbit, enclosed with enough digits, and the logarithms are enclosed too, so the result is an interval that contains the finite-time average of the orbit you asked about. Its <code>kind</code> says so: certified for n steps. The limit itself is not something a finite computation proves, and for a chaotic orbit the average settles slowly as n grows.</p>
+<p>The field <code>float</code> is the same average computed the ordinary way. For a chaotic orbit it differs from the certified one in the second or third decimal, because after fifty steps the program is averaging along a different orbit. Both are near the right answer for the same reason: almost every orbit gives the same limit.</p>
+
+<h2>Where the value is known</h2>
+<ul>
+<li>For an attracting cycle, λ is \(\tfrac1n\log|\text{multiplier}|\), negative, and <a href="periodic-points.html"><code>cycles</code></a> gives it directly. An orbit attracted to the cycle has the same exponent.</li>
+<li>For the tent map with slope 2, \(|f'| = 2\) everywhere, so λ = ln 2 on every orbit.</li>
+<li>For the logistic map with r = 4, the change of variable \(x = \sin^2(\pi\theta/2)\) turns it into the tent map, so λ = ln 2 for almost every starting point. Every periodic orbit except the fixed point 0 also has exactly ln 2 per step, as the 3-cycles on the previous page show.</li>
+</ul>
+
+<h2>Sensitive dependence, measured</h2>
+<p><code>sensitivity(f, x0, δ)</code> follows the true orbits of \(x_0\) and \(x_0 + \delta\) together and returns their separation at each step as an enclosure, the first step at which it passes a threshold (1/10 by default), and the average growth factor per step up to then. For r = 4 the factor is about 2: a starting error of \(10^{-12}\) is a visible error after about 36 steps, and no instrument or data type changes that count by much, since each extra decimal digit of accuracy buys only \(\log_2 10 \approx 3.3\) more steps.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>lyapunov(f, x0, { steps = 200, transient = 0, digits = 10 })</td><td>{ value: RationalInterval, steps, transient, bits, kind, float }</td></tr>
+<tr><td>sensitivity(f, x0, delta, { steps = 60, threshold = "1/10" })</td><td>{ rows: [{ n, separation }], reaches, rate, factor }</td></tr>
+</table></div>
+<template data-runbox>
+const show = (iv) =&gt; iv.low.toDecimal(10);
+const chaotic = lyapunov(logistic(4), "1/10", { steps: 300 });
+PRINT("r = 4, 300 steps: certified", show(chaotic.value), " float", chaotic.float.toFixed(10), " ln 2 =", Math.log(2).toFixed(10));
+PRINT("binary digits carried:", chaotic.bits);
+PRINT("tent map:", show(lyapunov(tent(2), "1/7", { steps: 60 }).value));
+const tame = lyapunov(logistic("3.2"), "1/10", { steps: 200, transient: 200 });
+PRINT("r = 3.2 (attracting 2-cycle):", show(tame.value), " and log(4/25)/2 =", (Math.log(0.16) / 2).toFixed(10));
+
+const s = sensitivity(logistic(4), "1/10", "1/1000000000000", { steps: 50 });
+for (const n of [0, 10, 20, 30, 36]) PRINT(`separation after ${n} steps: ${s.rows[n].separation.low.toNumber().toExponential(2)}`);
+`passes 1/10 at step ${s.reaches}; grows by a factor ${s.factor.toFixed(3)} per step`
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

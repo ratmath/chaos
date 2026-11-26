@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbits · RatMath Chaos</title>
+<meta name="description" content="Exact, enclosed and floating-point orbits of a map of the line, and the step at which the doubles stop describing the orbit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Orbits, true and floating</h1>
+<p class="lede">Iterating a map is the whole subject, and it is the one computation floating point cannot be trusted with. An orbit here comes in three kinds, and they can be put side by side.</p>
+<pre><code>const f = logistic(4);              // or map("r*x*(1 - x)", { params: { r: 4 } })
+f.orbit("1/3", 3);                  // exact rationals
+f.enclosedOrbit("1/10", 200);       // { terms, bits, width }: the true orbit as intervals
+f.floatOrbit(0.1, 200);             // what a program computes
+f.compare("1/10", 80);              // { rows, parted }
+doubling("1/10");                   // x → 2x mod 1 on a rational, with its cycle</code></pre>
+<h2>The exact orbit</h2>
+<p>If f is a polynomial with rational coefficients and \(x_0\) is rational, every \(x_n = f(x_{n-1})\) is rational and <code>orbit</code> returns them. This is the true orbit, but it cannot be long: for a quadratic map the number of digits doubles at every step, so \(x_{20}\) already has about a million. <code>orbit</code> stops with an error once a term passes <code>maxBits</code> binary digits.</p>
+
+<h2>The enclosed orbit</h2>
+<p>For long orbits each term is kept as an interval \([a_n, b_n]\) with rational ends that is certain to contain the true \(x_n\). The next interval is computed so that it contains f(x) for every x in the current one, and its ends are rounded outward to a fixed number of binary digits. Chaos stretches intervals too: with a Lyapunov exponent λ the width grows like \(e^{\lambda n}\). The cure is to carry more digits than the stretching eats, and <code>enclosedOrbit</code> does that itself: it starts again with twice the digits until the last term is known to the accuracy asked for. For the logistic map with r = 4, one binary digit is lost per step, so 200 steps to 12 decimals needs about 250 binary digits. The result reports the number it used.</p>
+<p>An orbit that runs off to infinity is reported as such, and an interval that reaches a division by zero is refused.</p>
+
+<h2>The floating-point orbit, and where it parts</h2>
+<p>A double has 53 binary digits. Each step of a chaotic map magnifies the rounding error of the step before, so the float orbit drifts from the true one and, after roughly 53/(λ/ln 2) steps, has nothing in common with it. <code>compare</code> returns both, with the error and the number of correct digits at every step, and <code>parted</code>, the first step at which no digit is right. The float orbit still <em>looks</em> like an orbit of the map, which is why the failure is invisible without the true one beside it.</p>
+
+<h2>The doubling map</h2>
+<p>\(x \mapsto 2x \bmod 1\) shifts the binary expansion of x one place to the left. A rational p/q has a repeating expansion, so its orbit is eventually periodic, and <code>doubling</code> finds the cycle exactly. In doubles every number has a finite binary expansion, so every float orbit reaches 0 within about 55 steps and stays there: the computed behaviour is wrong for every starting point that does not really end at 0. <code>floatReachesZeroAt</code> gives the step.</p>
+
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>map(formula, { variable = "x", params })</td><td>IteratedMap</td></tr>
+<tr><td>logistic(r), tent(mu), quadratic(c)</td><td>\(rx(1-x)\), \(\mu(\tfrac12 - |x - \tfrac12|)\), \(x^2 + c\)</td></tr>
+<tr><td>f.at(x), f.enclose(X), f.float(x), f.derivativeAt(x)</td><td>Rational, RationalInterval, number</td></tr>
+<tr><td>f.orbit(x0, n, { maxBits })</td><td>Rational[]</td></tr>
+<tr><td>f.enclosedOrbit(x0, n, { digits = 12 })</td><td>{ terms, bits, width }</td></tr>
+<tr><td>f.floatOrbit(x0, n), f.cobweb(x0, n)</td><td>number[]; points of a cobweb diagram</td></tr>
+<tr><td>f.compare(x0, n)</td><td>{ rows: [{ n, float, exact, error, digits }], parted }</td></tr>
+<tr><td>f.with({ r: "3.2" })</td><td>the same family at another parameter</td></tr>
+<tr><td>doubling(x0, { base = 2 })</td><td>{ orbit, preperiod, period, cycle, floatReachesZeroAt }</td></tr>
+</table></div>
+<template data-runbox>
+const f = logistic(4);
+PRINT("exact:", f.orbit("1/3", 5).join("  "));
+PRINT("digits in the 12th term:", String(f.orbit("1/3", 12)[12].denominator).length);
+
+const e = f.enclosedOrbit("1/10", 200, { digits: 15 });
+PRINT(`x_200 = ${e.terms[200].low.toDecimal(15)}…  (width ${e.width.toNumber().toExponential(1)}, ${e.bits} binary digits carried)`);
+PRINT("float x_200 =", f.floatOrbit(0.1, 200)[200], " which is unrelated");
+
+const c = f.compare("1/10", 60);
+for (const r of c.rows.filter((r) =&gt; r.n % 10 === 0)) PRINT(`n = ${r.n}: correct digits ${r.digits.toFixed(1)}`);
+PRINT("parted at step", c.parted);
+
+const d = doubling("1/10");
+PRINT("doubling map from 1/10:", d.orbit.join(" → "), `then back to ${d.cycle[0]}; in doubles it is 0 from step ${d.floatReachesZeroAt}`);
+tent(2).orbit("1/7", 6).join(" → ")
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

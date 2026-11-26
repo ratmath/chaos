@@ -1,8 +1,8 @@
 // Shared page furniture for the chaos docs: the contents column, the theme
 // switch and the code boxes. Add each topic page to PAGES as it is written.
 
-import * as A from "./chaos.js?v=50c961c256";
-import { mountRunboxes } from "./runbox.js?v=50c961c256";
+import * as A from "./chaos.js?v=2b232dc77e";
+import { mountRunboxes } from "./runbox.js?v=2b232dc77e";
 
 export { A };
 
@@ -10,8 +10,12 @@ export const PAGES = [
   { href: "index.html", title: "Overview" },
   { href: "reference.html", title: "Reference" },
   { href: "explore.html", title: "Explore" },
-  // { group: "Topics" },
-  // { href: "topic.html", title: "A topic", blurb: "One line about it" },
+  { group: "Maps of the line" },
+  { href: "orbits.html", title: "Orbits, true and floating", blurb: "Exact and enclosed orbits, and the step where doubles part from them" },
+  { href: "periodic-points.html", title: "Periodic points and stability", blurb: "Algebraic periodic points, multipliers, cycles" },
+  { href: "lyapunov.html", title: "Lyapunov exponents and sensitivity", blurb: "Certified averages along true orbits; separation measured" },
+  { href: "bifurcations.html", title: "Period doubling and windows", blurb: "Bifurcation parameters proven; Feigenbaum's ratios" },
+  { href: "symbolic-dynamics.html", title: "Symbolic dynamics", blurb: "Itineraries, kneading sequences, Sharkovskii's order" },
 ];
 
 export const h = (tag, attrs = {}, ...kids) => {
