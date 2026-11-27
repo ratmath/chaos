@@ -45,7 +45,7 @@
   "dependencies": {
     "@ratmath/algebraic": "^0.1.0",
     "@ratmath/analytic": "^0.1.0",
-    "@ratmath/complex": "^0.2.0"
+    "@ratmath/complex": "^0.3.0"
   },
   "peerDependencies": {
     "@ratmath/core": ">=0.10.0 <0.12.0"

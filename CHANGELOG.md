@@ -2,6 +2,8 @@
 
 ## 0.3.0
 
+- The `@ratmath/complex` range is now `^0.3.0` (was `^0.2.0`, which under 0.x
+  rejects complex 0.3.0, so the package could not be installed from npm).
 - Phase 3, maps of the plane: `planeMap`, `henon`, `standardMap` with exact,
   enclosed and float orbits and `compare`; `periodicPoints(n, region)`,
   `fixedPoints` and `cycles` prove each point by Krawczyk's test on Fⁿ − id
