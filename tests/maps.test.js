@@ -94,3 +94,13 @@ describe("periodic points", () => {
     expect(L.criticalPoints().map(String)).toEqual(["1/2"]);
   });
 });
+
+describe("long exact orbits", () => {
+  test("a bounded orbit with long numerators is not mistaken for an escaping one", () => {
+    // 1/5 under 4x(1 − x): denominators 5^(2^n) pass 2^4096 by step 12, though every term is in [0, 1]
+    const r = logistic(4).enclosedOrbit("1/5", 14, { bits: 6000 });
+    expect(r.terms.length).toBe(15);
+    for (const t of r.terms) expect(t.high.toNumber()).toBeLessThanOrEqual(1);
+    expect(() => logistic(5).enclosedOrbit("1/2", 40)).toThrow(/leaves every bounded range/);
+  });
+});

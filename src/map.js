@@ -6,6 +6,9 @@
 import { Rational, RationalInterval } from "@ratmath/core";
 import { roots as algebraicRoots, format as algebraicFormat } from "@ratmath/algebraic";
 import { zeros } from "@ratmath/analytic";
+
+/** About log2 of a nonnegative rational's size: the numerator's bits less the denominator's. */
+const bitSize = (q) => q.numerator.toString(2).length - q.denominator.toString(2).length;
 import { ChaosError, refuse, ZERO, ONE, Q, toQ, Box, P, parse, format, differentiate, simplify, compileFloat, exactValue, boxValue, logAbs, substitute, polynomialOf } from "./tree.js";
 
 const bitLength = (q) => q.numerator.toString(2).length + q.denominator.toString(2).length;
@@ -107,7 +110,7 @@ export class IteratedMap {
           terms.push(next);
           // an interval this wide says nothing any more: stop and start again with more digits
           if (next.width.compareTo(ONE) > 0) ok = false;
-          else if (next.mag.numerator.toString(2).length > 4096) refuse("escapes", `the orbit leaves every bounded range (it passes 2^4000 by step ${i + 1})`);
+          else if (bitSize(next.mag) > 4000) refuse("escapes", `the orbit leaves every bounded range (it passes 2^4000 by step ${i + 1})`);
         }
       } catch (e) {
         if (!(e instanceof ChaosError) || e.code !== "division") throw e;

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- `enclosedOrbit` (and so `lyapunov`, `compare` and the rest that follow one
+  exact orbit) took a long numerator for a large value: a bounded orbit whose
+  terms carry thousands of bits, such as `lyapunov(logistic(4), "1/5",
+  { steps: 2000 })`, was refused as "leaves every bounded range". The test
+  now compares the numerator's bits with the denominator's. Found by the
+  Course Test (ratmath/shelf#7).
+
 ## 0.3.0
 
 - Phase 3, maps of the plane: `planeMap`, `henon`, `standardMap` with exact,
