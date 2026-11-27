@@ -1,0 +1,1453 @@
+# @ratmath/chaos 0.3.0: full documentation
+
+> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit 82991bf. Each page ends with a runnable example; in it, PRINT(...) prints.
+
+
+---
+
+Page: https://ratmath.com/chaos/index.html
+
+@ratmath/chaos
+
+## Chaos without rounding error
+
+A chaotic map doubles every rounding error at each step, so after about fifty steps a floating-point orbit has no correct digit left and nothing warns you. Here an orbit is the true one, exactly or inside an interval, periodic points are algebraic numbers, and the parameters at which cycles are born or double are proven.
+
+### What is here
+
+### A first program
+
+```js
+import { logistic, lyapunov, bifurcationPoint, itinerary } from "@ratmath/chaos";
+
+const f = logistic(4);                       // x → 4x(1 − x)
+f.orbit("1/3", 3);                           // 1/3, 8/9, 32/81, 6272/6561: the true orbit
+f.compare("1/10", 80).parted;                // 52: the step where doubles have no digit right
+f.periodicPoints(2).map((p) => p.text);      // ["(5 − √5)/8", "(5 + √5)/8"]
+lyapunov(f, "1/10", { steps: 300 }).value;   // an interval, along the true orbit
+bifurcationPoint(logistic(), { parameter: "r", period: 2, near: [3.44, 0.44] }).parameter;   // 1 + √6, proven
+itinerary(f, "1/10", 12);                    // "LLRLRRRLLRLR"
+```
+
+### Three kinds of answer
+
+Exact. The orbit of a rational point under a polynomial map is a list of rationals, and it is the true orbit. A periodic point of a polynomial map is a root of fn(x)−x, an algebraic number, kept with its minimal polynomial.
+
+Certified. An interval with rational ends, proven to contain the true value: a long orbit (exact rationals grow too fast to keep), a multiplier, a Lyapunov exponent along a true orbit, the parameter of a bifurcation. Ask for more digits and the interval narrows.
+
+Estimated. A bifurcation diagram is a picture made from finitely many floating-point iterates, and its result says `kind: "estimated"`. So does anything stated about a limit that was only observed, such as the ratios that approach Feigenbaum's constant.
+
+### Numbers in
+
+Starting points and parameters are exact: a whole number, a fraction `"1/3"` or a decimal string `"3.2"`, which means 16/5. A JavaScript number that is not whole is refused, because `0.1` is not one tenth and the point of the library is that the orbit you get is the orbit of the number you typed.
+
+### Fractals, automata and honest pixels
+
+The same three kinds of answer carry over to pictures. An [iterated function system](https://ratmath.com/chaos/iterated-function-systems.html) with rational maps has exact stages and a dimension that is exact or certified; the chaos game that draws it is an estimate and says so. Whether a fraction lies in a [Cantor set](https://ratmath.com/chaos/cantor-sets.html) is decided exactly. [L-systems](https://ratmath.com/chaos/l-systems.html) count their symbols by matrix powers and draw at multiples of 30° in exact coordinates, and [cellular automata](https://ratmath.com/chaos/cellular-automata.html) are exact by nature. In a [Mandelbrot or Julia picture](https://ratmath.com/chaos/mandelbrot-and-julia.html) or a picture of [Newton basins](https://ratmath.com/chaos/newton-basins.html), every pixel is proved outside, proved inside, or left undecided.
+
+### The plane and flows
+
+In two dimensions and for differential equations the exact answers mostly run out, and proof takes over. [Periodic points of the Hénon map](https://ratmath.com/chaos/plane-maps.html) are each proven to exist, alone in a small box, with a list that is proven complete; where a coordinate can be eliminated they are algebraic numbers again. The [cat map and the horseshoe](https://ratmath.com/chaos/cat-map-and-horseshoe.html) are exact throughout. A [flow](https://ratmath.com/chaos/flows.html) is solved inside boxes that are proven to hold the true solution, which is enough to prove that a [periodic orbit](https://ratmath.com/chaos/periodic-orbits.html) of the Lorenz system exists, with its period and multipliers, and to find and classify every [equilibrium](https://ratmath.com/chaos/equilibria.html) in a region and the parameters where they change. The numbers under these proofs are doubles rounded outward, so they are fast; the statements are still theorems.
+
+Pictures of all of this are in [@ratmath/graphics](https://ratmath.com/graphics/). The [RatMath Shelf](https://ratmath.com/shelf/) page lists what exists across all the libraries.
+
+### Try it
+
+```js
+const f = logistic(4);
+PRINT("true orbit of 1/3:", f.orbit("1/3", 4).join(", "));
+const c = f.compare("1/10", 70);
+for (const n of [10, 30, 50, 52, 60, 70]) PRINT(`step ${n}: float ${c.rows[n].float.toFixed(12)}  true ${c.rows[n].exact.low.toDecimal(12)}  correct digits ${c.rows[n].digits.toFixed(1)}`);
+PRINT("the double has no correct digit from step", c.parted);
+PRINT("period 2:", f.periodicPoints(2).map((p) => p.text).join(" and "));
+const vdp = vanDerPol(1).periodicOrbit({ variable: "y", value: 0, direction: -1 }, { x: 2 });
+PRINT("Van der Pol's limit cycle, proven:", vdp.stability, "period", vdp.period.low.toDecimal(9));
+henon().periodicPoints(2, { x: [-2, 2], y: [-2, 2] }).map((p) => `(${p.point[0].low.toDecimal(8)}, ${p.point[1].low.toDecimal(8)}) ${p.stability}`)
+```
+
+---
+
+Page: https://ratmath.com/chaos/reference.html
+
+Reference
+
+## Everything in the library
+
+Every export of `@ratmath/chaos`, with what it takes and what it returns. Numbers go in as whole numbers, fractions or decimal strings; a JavaScript number that is not whole is refused where an exact value is meant.
+
+### Maps
+
+| Export | What it does |
+
+| map(formula, { variable, params, critical }) | A map of the line from a formula in analytic's notation. Returns an IteratedMap. |
+
+| logistic(r = 4), tent(mu = 2), quadratic(c = -2) | The standard families rx(1−x), μ(21​−∣x−21​∣) and x2+c. |
+
+| doubling(x0, { base }) | x↦2xmod1 on a rational, exactly: { orbit, preperiod, period, cycle, floatReachesZeroAt }. |
+
+| IteratedMap | The class. Fields: text, variable, params, polynomial (coefficients, or null), tree. |
+
+### Methods of a map
+
+| Method | What it does |
+
+| at(x), enclose(X, bits), float(x), derivativeAt(x) | One step: exact, as an interval, in doubles; and f′. |
+
+| orbit(x0, n, { maxBits }) | The true orbit in rationals. See Orbits. |
+
+| enclosedOrbit(x0, n, { digits, bits }) | The true orbit as intervals: { terms, bits, width }. |
+
+| floatOrbit(x0, n), cobweb(x0, n) | The orbit in doubles; the corner points of a cobweb diagram. |
+
+| compare(x0, n, { digits }) | Float beside true: { rows, parted }. |
+
+| fixedPoints(), periodicPoints(n) | Exact points of least period n with multiplier and stability. See Periodic points. |
+
+| cycles(n) | The points grouped into cycles, each with its multiplier and Lyapunov exponent. |
+
+| periodicPointsIn(n, [a, b], { digits }) | Certified periodic points of any formula. |
+
+| iterate(n), criticalPoints([a, b]), with(params) | fn as coefficients; zeros of f′; the family at other parameters. |
+
+### Exponents, bifurcations, symbols
+
+| Export | What it does |
+
+| lyapunov(f, x0, { steps, transient, digits }) | The average of log\|f′\| along the true orbit, enclosed. See Lyapunov exponents. |
+
+| sensitivity(f, x0, delta, { steps, threshold }) | The separation of two true orbits, step by step. |
+
+| bifurcationPoint(family, { parameter, period, multiplier, near, digits }) | A parameter where a cycle's multiplier is ±1, proven. See Bifurcations. |
+
+| periodDoubling(family, { parameter, levels, start }) | The cascade, each doubling proven, and the ratios of the gaps. |
+
+| periodicWindow(family, { parameter, period, near }) | Birth, superstable parameter and first doubling of a window. |
+
+| superstable(family, { parameter, period, range, critical }) | Parameters where the critical point has the given period. |
+
+| bifurcationDiagram(family, { parameter, range, count, transient, keep }) | Data for the picture, in doubles, marked estimated. |
+
+| itinerary(f, x0, n), kneading(f, n) | Symbol strings on true orbits. See Symbolic dynamics. |
+
+| sharkovskii | { order(limit), compare(a, b), forces(a, b), forced(n, limit) }. |
+
+| ChaosError | What the library throws, with a code: inexact, too-large, escapes, not-polynomial, not-proven and others. |
+
+| plan | The phases still to come. Every phase is built, so the list is empty. |
+
+### Maps of the plane
+
+| Export | What it does |
+
+| planeMap([f, g], { variables, params }), henon(a, b), standardMap(k), PlaneMap | A map of the plane from two formulas. Fields: text, variables, params, determinant (when constant), areaPreserving. See Maps of the plane. |
+
+| at(p), float(p), enclose(P, bits), jacobian() | One step: exact, in doubles, as intervals; the Jacobian as formulas. |
+
+| orbit, floatOrbit, enclosedOrbit, compare | As for maps of the line, on pairs. |
+
+| periodicPoints(n, region, { all }), fixedPoints(region), cycles(n, region) | Every point of least period n in a box, each proven and alone in its enclosure, with multipliers and stability; complete says none was missed. |
+
+| exactPeriodicPoints(n) | The points as algebraic numbers, when one coordinate can be eliminated. |
+
+| lyapunov(p, n) | Both exponents, estimated; their sum enclosed when the determinant is constant. |
+
+| catMap(), torusMap(matrix), TorusMap | Integer matrices on the torus, exact: at, orbit, period, periods(q), fixedPointCount(n), eigen(), entropy(), floatPartsAt. See The cat map and the horseshoe. |
+
+| horseshoe(), Horseshoe | Smale's horseshoe in exact coordinates: at, itinerary, periodicPoint(word), periodicPoints(n), orbitCount(n), strips(n), dimension. |
+
+### Flows
+
+| Export | What it does |
+
+| flow(field, { variables, params }), Flow | A system x′ = f(x) from one formula per variable. Fields: n, text, variables, params; with(params), jacobian(), velocity(p). |
+
+| lorenz(s, r, b), rossler(a, b, c), vanDerPol(mu), pendulum(damping) | The standard systems. |
+
+| solve(p0, until, { order, maxStep, maxSteps }) | The solution through a point or a box, enclosed: { final, complete, reason, reached, steps, width, at(t) }. See Flows. |
+
+| floatOrbit(p0, until, { steps }) | A path in doubles for drawing: { t, points }. |
+
+| returnMap(section, start, { returns }) | The return map of a section { variable, value, direction }: enclosures of the point, the time and the derivative. See Sections and periodic orbits. |
+
+| periodicOrbit(section, guess, { returns, radius }) | A periodic orbit proven to exist near the guess, with period, multipliers and stability; or { proven: false, reason }. |
+
+| equilibria(region) | Every equilibrium in a box, with eigenvalues and kind. See Equilibria. |
+
+| bifurcations(param, [from, to], region, { samples, tol }) | Parameter brackets where equilibria appear, merge or change stability, named. |
+
+### Fractals
+
+| Export | What it does |
+
+| new IFS(maps, { name, probabilities }), Affine | An iterated function system of affine maps with rational coefficients: stage(n), step, fixedPoint(i), contraction(), similarityDimension(), chaosGame(n, { seed }). See Iterated function systems. |
+
+| attractors | sierpinski, carpet, vicsek, cantorDust, heighway, levyDragon, barnsley. |
+
+| moran(ratios, { bits }) | The s with Σ rᵢ^s = 1: exact or certified. |
+
+| boxCounting(points, { scales }), seeded(seed) | An estimated box dimension; a repeatable random generator. |
+
+| cantor({ base, digits }) | A DigitCantor: contains(q), expansion(q), stage(n), measure(n), dimension(). See Cantor sets. |
+
+| lsystem(spec), lsystems, LSystem, Q3 | L-systems: generate(n), counts(n), turtle(n). See L-systems. |
+
+### Automata and pictures
+
+| Export | What it does |
+
+| elementary(rule), Elementary, showRows(rows) | Wolfram's rules: table, mirror, complement, equivalents, additive, step, run, fromCell, cycle. See Cellular automata. |
+
+| life(cells, { rule }), Life, patterns | Life and its relatives on the unbounded plane: step, run, population, bounds, classify, toString. |
+
+| mandelbrot(options), julia(c, options) | PixelGrid of proved inside / outside / undecided pixels. See Mandelbrot and Julia sets. |
+
+| mandelbrotPoint(c), juliaPoint(c, z0) | One exact point: { verdict, reason, period or escape }. |
+
+| newtonBasins(coefficients, options) | PixelGrid labelled by proved root. See Newton basins. |
+
+| PixelGrid | width, height, kind, counts, at(i, j), toText(chars). |
+
+### Try it
+
+```js
+// Every map method on one small example.
+const f = logistic("7/2");
+PRINT(String(f));
+PRINT("at 1/2:", String(f.at("1/2")), " f′(1/2):", String(f.derivativeAt("1/2")), " float:", f.float(0.5));
+PRINT("f² =", f.iterate(2).join(", "), "(coefficients, constant first)");
+PRINT("fixed:", f.fixedPoints().map((p) => `${p.text} (${p.stability})`).join(", "));
+PRINT("4-cycle:", f.cycles(4).map((c) => `${c.values.map((v) => v.toString(6)).join(" → ")} (${c.stability})`).join("; "));
+const H = henon();
+PRINT(String(H), " determinant", String(H.determinant));
+PRINT("Hénon fixed points:", H.exactPeriodicPoints(1).map((p) => p.text[0]).join(" and "));
+PRINT("Lorenz equilibria:", lorenz().equilibria({ x: [-20, 20], y: [-20, 20], z: [-1, 40] }).map((e) => e.kind).join(", "));
+kneading(f, 16)
+```
+
+---
+
+Page: https://ratmath.com/chaos/explore.html
+
+Explore
+
+## Explore
+
+Type a map and a starting point. The page draws the cobweb, lists the true orbit beside the floating-point one, and finds the periodic points. Further down: the Hénon map with its periodic points proven, flows with their equilibria, escape-time pictures with every pixel proved or left undecided, attractors, and cellular automata.
+
+### A map and an orbit
+
+Map f(x)
+r
+x₀
+Steps
+
+Use `r` as the parameter in the formula. Exact inputs only: `3.2` means 16/5. Try r = 3.2 (a 2-cycle), 3.5 (a 4-cycle), 3.83 (the period-3 window) and 4.
+
+### Periodic points
+
+Period
+
+For a polynomial map these are exact algebraic numbers. The Lyapunov exponent in the first panel is the certified average along the true orbit.
+
+### A map of the plane
+
+a
+b
+Period
+
+The Hénon map (x,y)↦(1−ax2+y, bx). The dots are a floating-point orbit, an estimate of the attractor. The marked points are the points of the chosen least period in the square from −2 to 2, each proven to exist and to be alone in its box. Try a = 1, b = 0.3, where a cycle of period 4 attracts.
+
+### A flow
+
+System
+Time
+
+The curve is a path in doubles, for the eye. The table is proven: every equilibrium in the box shown, with its kind read from enclosed eigenvalues.
+
+### Escape-time pictures
+
+Picture
+c or p
+Re
+Im
+
+Dark pixels are proved inside (or, for Newton, a colour per proved root), pale ones proved outside, and the accent colour marks undecided pixels, which gather on the boundary. For Newton, give the coefficients highest first, separated by commas: `1, 0, 0, -1` is z³ − 1. Try the Mandelbrot set on Re −3/4, −1/2 and Im 0, 1/4, or the Julia set of c = −0.12 + 0.75i.
+
+### Attractors and automata
+
+Attractor
+Points
+
+Elementary rule
+Steps
+
+The chaos game is an estimate drawn from floats, and the page says the dimension it would have; the automaton is exact.
+
+### Try it
+
+```js
+// The page above, as code.
+const f = map("r*x*(1 - x)", { params: { r: 4 } });
+const c = f.compare("1/10", 60);
+PRINT("parted at step", c.parted);
+PRINT("exponent over 60 steps:", lyapunov(f, "1/10", { steps: 60 }).value.low.toDecimal(8));
+PRINT("logistic period 2:", f.periodicPoints(2).map((p) => `${p.text}: ${p.stability}`).join("; "));
+PRINT("Hénon period 2:", henon().periodicPoints(2, { x: [-2, 2], y: [-2, 2] }).map((p) => `(${p.point[0].low.toDecimal(6)}, ${p.point[1].low.toDecimal(6)}) ${p.stability}`).join("; "));
+lorenz().equilibria({ x: [-20, 20], y: [-20, 20], z: [-1, 40] }).map((e) => `(${e.point.map((c) => c.low.toDecimal(4)).join(", ")}) ${e.kind}`)
+```
+
+---
+
+Page: https://ratmath.com/chaos/orbits.html
+
+Topic
+
+## Orbits, true and floating
+
+Iterating a map is the whole subject, and it is the one computation floating point cannot be trusted with. An orbit here comes in three kinds, and they can be put side by side.
+
+```js
+const f = logistic(4);              // or map("r*x*(1 - x)", { params: { r: 4 } })
+f.orbit("1/3", 3);                  // exact rationals
+f.enclosedOrbit("1/10", 200);       // { terms, bits, width }: the true orbit as intervals
+f.floatOrbit(0.1, 200);             // what a program computes
+f.compare("1/10", 80);              // { rows, parted }
+doubling("1/10");                   // x → 2x mod 1 on a rational, with its cycle
+```
+
+### The exact orbit
+
+If f is a polynomial with rational coefficients and x0​ is rational, every xn​=f(xn−1​) is rational and `orbit` returns them. This is the true orbit, but it cannot be long: for a quadratic map the number of digits doubles at every step, so x20​ already has about a million. `orbit` stops with an error once a term passes `maxBits` binary digits.
+
+### The enclosed orbit
+
+For long orbits each term is kept as an interval [an​,bn​] with rational ends that is certain to contain the true xn​. The next interval is computed so that it contains f(x) for every x in the current one, and its ends are rounded outward to a fixed number of binary digits. Chaos stretches intervals too: with a Lyapunov exponent λ the width grows like eλn. The cure is to carry more digits than the stretching eats, and `enclosedOrbit` does that itself: it starts again with twice the digits until the last term is known to the accuracy asked for. For the logistic map with r = 4, one binary digit is lost per step, so 200 steps to 12 decimals needs about 250 binary digits. The result reports the number it used.
+
+An orbit that runs off to infinity is reported as such, and an interval that reaches a division by zero is refused.
+
+### The floating-point orbit, and where it parts
+
+A double has 53 binary digits. Each step of a chaotic map magnifies the rounding error of the step before, so the float orbit drifts from the true one and, after roughly 53/(λ/ln 2) steps, has nothing in common with it. `compare` returns both, with the error and the number of correct digits at every step, and `parted`, the first step at which no digit is right. The float orbit still looks like an orbit of the map, which is why the failure is invisible without the true one beside it.
+
+### The doubling map
+
+x↦2xmod1 shifts the binary expansion of x one place to the left. A rational p/q has a repeating expansion, so its orbit is eventually periodic, and `doubling` finds the cycle exactly. In doubles every number has a finite binary expansion, so every float orbit reaches 0 within about 55 steps and stays there: the computed behaviour is wrong for every starting point that does not really end at 0. `floatReachesZeroAt` gives the step.
+
+| call | returns |
+
+| map(formula, { variable = "x", params }) | IteratedMap |
+
+| logistic(r), tent(mu), quadratic(c) | rx(1−x), μ(21​−∣x−21​∣), x2+c |
+
+| f.at(x), f.enclose(X), f.float(x), f.derivativeAt(x) | Rational, RationalInterval, number |
+
+| f.orbit(x0, n, { maxBits }) | Rational[] |
+
+| f.enclosedOrbit(x0, n, { digits = 12 }) | { terms, bits, width } |
+
+| f.floatOrbit(x0, n), f.cobweb(x0, n) | number[]; points of a cobweb diagram |
+
+| f.compare(x0, n) | { rows: [{ n, float, exact, error, digits }], parted } |
+
+| f.with({ r: "3.2" }) | the same family at another parameter |
+
+| doubling(x0, { base = 2 }) | { orbit, preperiod, period, cycle, floatReachesZeroAt } |
+
+### Try it
+
+```js
+const f = logistic(4);
+PRINT("exact:", f.orbit("1/3", 5).join("  "));
+PRINT("digits in the 12th term:", String(f.orbit("1/3", 12)[12].denominator).length);
+
+const e = f.enclosedOrbit("1/10", 200, { digits: 15 });
+PRINT(`x_200 = ${e.terms[200].low.toDecimal(15)}…  (width ${e.width.toNumber().toExponential(1)}, ${e.bits} binary digits carried)`);
+PRINT("float x_200 =", f.floatOrbit(0.1, 200)[200], " which is unrelated");
+
+const c = f.compare("1/10", 60);
+for (const r of c.rows.filter((r) => r.n % 10 === 0)) PRINT(`n = ${r.n}: correct digits ${r.digits.toFixed(1)}`);
+PRINT("parted at step", c.parted);
+
+const d = doubling("1/10");
+PRINT("doubling map from 1/10:", d.orbit.join(" → "), `then back to ${d.cycle[0]}; in doubles it is 0 from step ${d.floatReachesZeroAt}`);
+tent(2).orbit("1/7", 6).join(" → ")
+```
+
+---
+
+Page: https://ratmath.com/chaos/periodic-points.html
+
+Topic
+
+## Periodic points and stability
+
+A point of period n satisfies fn(x)=x. For a polynomial map that is a polynomial equation, so its solutions are algebraic numbers and can be had exactly.
+
+```js
+logistic(4).fixedPoints();          // 0 and 3/4, with multipliers 4 and −2
+logistic(4).periodicPoints(2);      // (5 ± √5)/8
+logistic("3.2").cycles(2);          // one attracting 2-cycle, multiplier 4/25
+map("sin(pi*x)").periodicPointsIn(1, [0, 1]);   // certified, for a map that is not a polynomial
+```
+
+### Least period
+
+The roots of fn(x)−x include the points of every period dividing n. `periodicPoints(n)` removes them: it divides out the common factors with fd(x)−x for each proper divisor d, then asks `@ratmath/algebraic` for the real roots of what is left. Each comes back as an algebraic number: a fraction when it is rational, a closed form such as (5 − √5)/8 when it is quadratic, and otherwise its minimal polynomial with an interval that can be refined without limit.
+
+### The multiplier
+
+By the chain rule the derivative of fn is the same at every point of a cycle,
+
+(fn)′(x0​)=f′(x0​)f′(x1​)⋯f′(xn−1​),
+and this number, the multiplier, decides what nearby orbits do. If its absolute value is below 1 the cycle attracts them, above 1 it repels them. The multiplier is returned as an enclosure, and the stability is stated only when the enclosure settles it.
+
+The borderline cases are where things change, so they are decided exactly. The multiplier is a polynomial in the root; it equals 1, −1 or 0 exactly when that polynomial minus the constant is divisible by the root's minimal polynomial, which is a finite computation with no rounding. A multiplier of exactly 0 is reported as `"superattracting"`, and of exactly ±1 as `"neutral"`: for r = 3 the fixed point 2/3 of the logistic map has multiplier −1, the moment of the first period doubling.
+
+### Cycles
+
+`cycles(n)` groups the points into orbits by applying f to each and seeing which point it lands on (the intervals are refined until that is unambiguous). Each cycle carries its Lyapunov exponent n1​log∣multiplier∣, which for a cycle is exact up to the enclosure of the logarithm.
+
+### Maps that are not polynomials
+
+For any formula, `periodicPointsIn(n, [a, b])` finds the zeros of fn(x)−x in an interval with analytic's certified zero finder: each returned interval is proven to contain exactly one. The multiplier is enclosed along the enclosed cycle.
+
+| call | returns |
+
+| f.fixedPoints(), f.periodicPoints(n) | [{ value, text, period, multiplier, stability, exactMultiplier }] |
+
+| f.cycles(n) | [{ period, points, values, multiplier, stability, lyapunov }] |
+
+| f.periodicPointsIn(n, [a, b], { digits }) | [{ value, period, leastPeriod, multiplier, stability }] |
+
+| f.iterate(n) | the coefficients of fn, constant term first |
+
+| f.criticalPoints([a, b]) | where f′ = 0 |
+
+### Try it
+
+```js
+const f = logistic(4);
+for (const p of f.fixedPoints()) PRINT(`fixed point ${p.text}: multiplier ${p.multiplier.low.toDecimal(6)}, ${p.stability}`);
+for (const p of f.periodicPoints(2)) PRINT(`period 2: ${p.text}, multiplier ${p.multiplier.low.toDecimal(6)}`);
+for (const c of f.cycles(3)) PRINT(`3-cycle ${c.points.join(" → ")}  multiplier ${c.multiplier.low.toDecimal(4)}  exponent ${c.lyapunov.low.toDecimal(10)} (ln 2 = ${Math.log(2).toFixed(10)})`);
+PRINT("degree of the equation for period 3:", f.iterate(3).length - 1);
+
+for (const r of ["2", "3", "3.2", "3.5"]) {
+  const g = logistic(r);
+  PRINT(`r = ${r}: fixed point ${g.fixedPoints()[1].text} is ${g.fixedPoints()[1].stability};`, "2-cycles:", g.cycles(2).map((c) => `${c.points.join(", ")} (${c.stability})`).join("; ") || "none");
+}
+map("sin(pi*x)").periodicPointsIn(1, [0, 1]).map((p) => `${p.value.low.toDecimal(12)} ${p.stability}`)
+```
+
+---
+
+Page: https://ratmath.com/chaos/lyapunov.html
+
+Topic
+
+## Lyapunov exponents and sensitivity
+
+Two orbits that start a distance δ apart are, after n steps, about δeλn apart. The number λ is the Lyapunov exponent, and a positive one is what "chaotic" means in practice.
+
+```js
+lyapunov(logistic(4), "1/10", { steps: 300 });           // { value, float, bits, kind }
+lyapunov(logistic("3.2"), "1/10", { steps: 200, transient: 100 });
+sensitivity(logistic(4), "1/10", "1/1000000000000");     // { rows, reaches, rate, factor }
+```
+
+### The definition
+
+The distance between nearby orbits is multiplied at each step by about ∣f′(xi​)∣, so
+
+λ=n→∞lim​n1​i=0∑n−1​log​f′(xi​)​.
+`lyapunov` computes the average over `steps` terms (after discarding `transient`). What makes it different from the usual program is that the xi​ are the true orbit, enclosed with enough digits, and the logarithms are enclosed too, so the result is an interval that contains the finite-time average of the orbit you asked about. Its `kind` says so: certified for n steps. The limit itself is not something a finite computation proves, and for a chaotic orbit the average settles slowly as n grows.
+
+The field `float` is the same average computed the ordinary way. For a chaotic orbit it differs from the certified one in the second or third decimal, because after fifty steps the program is averaging along a different orbit. Both are near the right answer for the same reason: almost every orbit gives the same limit.
+
+### Where the value is known
+
+- For an attracting cycle, λ is n1​log∣multiplier∣, negative, and cycles gives it directly. An orbit attracted to the cycle has the same exponent.
+
+- For the tent map with slope 2, ∣f′∣=2 everywhere, so λ = ln 2 on every orbit.
+
+- For the logistic map with r = 4, the change of variable x=sin2(πθ/2) turns it into the tent map, so λ = ln 2 for almost every starting point. Every periodic orbit except the fixed point 0 also has exactly ln 2 per step, as the 3-cycles on the previous page show.
+
+### Sensitive dependence, measured
+
+`sensitivity(f, x0, δ)` follows the true orbits of x0​ and x0​+δ together and returns their separation at each step as an enclosure, the first step at which it passes a threshold (1/10 by default), and the average growth factor per step up to then. For r = 4 the factor is about 2: a starting error of 10−12 is a visible error after about 36 steps, and no instrument or data type changes that count by much, since each extra decimal digit of accuracy buys only log2​10≈3.3 more steps.
+
+| call | returns |
+
+| lyapunov(f, x0, { steps = 200, transient = 0, digits = 10 }) | { value: RationalInterval, steps, transient, bits, kind, float } |
+
+| sensitivity(f, x0, delta, { steps = 60, threshold = "1/10" }) | { rows: [{ n, separation }], reaches, rate, factor } |
+
+### Try it
+
+```js
+const show = (iv) => iv.low.toDecimal(10);
+const chaotic = lyapunov(logistic(4), "1/10", { steps: 300 });
+PRINT("r = 4, 300 steps: certified", show(chaotic.value), " float", chaotic.float.toFixed(10), " ln 2 =", Math.log(2).toFixed(10));
+PRINT("binary digits carried:", chaotic.bits);
+PRINT("tent map:", show(lyapunov(tent(2), "1/7", { steps: 60 }).value));
+const tame = lyapunov(logistic("3.2"), "1/10", { steps: 200, transient: 200 });
+PRINT("r = 3.2 (attracting 2-cycle):", show(tame.value), " and log(4/25)/2 =", (Math.log(0.16) / 2).toFixed(10));
+
+const s = sensitivity(logistic(4), "1/10", "1/1000000000000", { steps: 50 });
+for (const n of [0, 10, 20, 30, 36]) PRINT(`separation after ${n} steps: ${s.rows[n].separation.low.toNumber().toExponential(2)}`);
+`passes 1/10 at step ${s.reaches}; grows by a factor ${s.factor.toFixed(3)} per step`
+```
+
+---
+
+Page: https://ratmath.com/chaos/bifurcations.html
+
+Topic
+
+## Period doubling and windows
+
+As the parameter of a family moves, attracting cycles appear, double and vanish. The parameters at which that happens are solutions of equations, and here each is proven to exist inside a tiny interval.
+
+```js
+const family = logistic();    // r is the parameter
+bifurcationPoint(family, { parameter: "r", period: 1, near: [2.9, 0.6] });   // r = 3
+periodDoubling(family, { parameter: "r", levels: 5, start: [2.9, 0.6] });    // 3, 3.449…, 3.544…, …
+periodicWindow(family, { parameter: "r", period: 3, near: [3.835, 0.5] });   // born at 1 + √8
+superstable(family, { parameter: "r", period: 2, range: [3, "7/2"] });       // 1 + √5
+bifurcationDiagram(family, { parameter: "r", range: [2.8, 4], count: 400 }); // data for the picture (estimated)
+```
+
+### The two equations
+
+A cycle of period n is a solution of g(x,r)=x with g=frn​. It changes its nature when its multiplier gx​(x,r) passes through ±1:
+
+- −1: period doubling. The cycle stops attracting and an attracting cycle of period 2n splits off from it.
+
+- +1: tangent bifurcation. A pair of cycles, one attracting and one repelling, appears out of nothing. This is how a periodic window opens in the middle of the chaotic range.
+
+So a bifurcation is a solution (x, r) of two equations in two unknowns,
+
+g(x,r)−x=0,gx​(x,r)=±1.
+`bifurcationPoint` solves them in two stages. Newton's method in doubles finds an approximate solution near the point you give. Then Krawczyk's test is run in exact interval arithmetic on a small box B around it: if the interval Newton image K(B) lies strictly inside B, there is exactly one solution in B. That is a proof, and the box is then contracted until the parameter is known to the digits asked for. The derivatives of fn that the test needs come from the chain rule, carried through the n steps alongside the orbit.
+
+### The cascade
+
+`periodDoubling` follows the attracting cycle from one doubling to the next and proves each: for the logistic family r1​=3, r2​=1+6​, r3​=3.544090…, and so on. The gaps shrink by a factor that approaches Feigenbaum's constant δ = 4.669201609…, the same for every family with a quadratic maximum. The parameters are certified, and so is each ratio (rk​−rk−1​)/(rk+1​−rk​) as a quotient of intervals. That the ratios converge to δ is a theorem with a long computer-assisted proof, and it is not proven by this function, which says so in its `kind`.
+
+### Windows and superstable cycles
+
+`periodicWindow` returns the birth (multiplier +1) and the first doubling (multiplier −1) of an attracting cycle of the given period, both proven, and the parameter between them at which the cycle is superstable: it passes through the critical point, so its multiplier is 0. The period-3 window of the logistic family opens at 1+8​=3.828427… and its 3-cycle doubles at 3.841499…. By [Sharkovskii's theorem](https://ratmath.com/chaos/symbolic-dynamics.html), from that parameter on there are cycles of every period.
+
+`superstable` finds every parameter in a range at which the critical point has period n. That is one equation in one unknown, frn​(c)=c, solved by the certified zero finder.
+
+### The diagram
+
+`bifurcationDiagram` gives the data for the familiar picture: for each parameter, the points an orbit visits after a transient. It is computed in doubles and labelled `kind: "estimated"`. It is a good picture, since the attractor a float orbit settles on is the right one even though the orbit is not, but it proves nothing, and it shows a cycle of high period and chaos identically.
+
+| call | returns |
+
+| bifurcationPoint(family, { parameter, period = 1, multiplier = -1, near: [r, x], digits = 20 }) | { parameter, point, period, multiplier, kind } |
+
+| periodDoubling(family, { parameter, levels = 4, start: [r, x] }) | { points, parameters, ratios, feigenbaum, kind } |
+
+| periodicWindow(family, { parameter, period, near: [r, x] }) | { period, born, doubles, superstable, width } |
+
+| superstable(family, { parameter, period, range, critical }) | RationalInterval[] |
+
+| bifurcationDiagram(family, { parameter, range, count, transient, keep }) | { kind: "estimated", columns: [{ parameter, points }] } |
+
+### Try it
+
+```js
+const family = logistic();
+const show = (iv, d = 15) => iv.low.toDecimal(d);
+const d = periodDoubling(family, { parameter: "r", levels: 6, start: [2.9, 0.6] });
+d.parameters.forEach((r, k) => PRINT(`period ${2 ** k} doubles at r = ${show(r)}   (width ${r.high.subtract(r.low).toNumber().toExponential(1)})`));
+PRINT("1 + √6 =", (1 + Math.sqrt(6)).toFixed(15));
+PRINT("ratios of the gaps:", d.ratios.map((q) => show(q, 6)).join(", "), " → δ =", d.feigenbaum);
+
+const w = periodicWindow(family, { parameter: "r", period: 3, near: [3.835, 0.5] });
+PRINT(`period-3 window: born ${show(w.born, 12)} (1 + √8 = ${(1 + Math.sqrt(8)).toFixed(12)}), superstable ${show(w.superstable, 12)}, doubles ${show(w.doubles, 12)}`);
+PRINT("superstable 2-cycle at r =", show(superstable(family, { parameter: "r", period: 2, range: [3, "7/2"] })[0], 12), "= 1 + √5");
+
+const pic = bifurcationDiagram(family, { parameter: "r", range: [2.8, 3.6], count: 9 });
+pic.columns.map((c) => `r = ${c.parameter.toFixed(1)}: ${c.points.length > 16 ? "many" : c.points.length} point(s)`)
+```
+
+---
+
+Page: https://ratmath.com/chaos/symbolic-dynamics.html
+
+Topic
+
+## Symbolic dynamics and Sharkovskii's order
+
+Forget where the orbit is and record only which side of the turning point each term lies on. What is left is a string of letters, and a surprising amount of the dynamics can be read from it.
+
+```js
+itinerary(logistic(4), "1/10", 30);      // "LLRLRRRLLRLRRLLLLLLRRRRLLRLLRR"
+kneading(logistic("3.83"), 12);          // "RLRRLRRLRRLR": the critical orbit is attracted to a 3-cycle
+sharkovskii.order(12);                   // [3, 5, 7, 9, 11, 6, 10, 12, 8, 4, 2, 1]
+sharkovskii.forces(3, 1000);             // true: period three implies every period
+```
+
+### Itineraries
+
+For a map with one turning point c, write L if xn​<c, R if xn​>c and C if xn​=c. The string for the orbit of x0​ is its itinerary. Because f is increasing on one side of c and decreasing on the other, the itinerary determines the order of points on the line: two points with different itineraries can be told apart, and which is to the left can be read off from where the strings first differ and how many R's came before.
+
+An itinerary is exactly the kind of thing floating point gets wrong: one misplaced term near c changes every later comparison. `itinerary` follows the true orbit, in exact rationals while they stay small and then with enclosures, adding digits whenever a term is too close to c to place. For the full logistic map (r = 4) and the tent map, the itinerary is the binary expansion of the starting point in disguise, which is why every string of L's and R's occurs.
+
+### Kneading sequences
+
+The itinerary of the critical value f(c) is the kneading sequence of the map. It is the largest itinerary any point can have (in the order above), so it describes which strings are allowed at all. As the parameter of the logistic family increases, the kneading sequence increases with it, and a periodic kneading sequence marks a superstable or attracting cycle: at r = 3.83, inside the period-3 window, it is RLR repeated.
+
+### Sharkovskii's order
+
+Order the positive whole numbers like this:
+
+3▹5▹7▹⋯▹2⋅3▹2⋅5▹⋯▹4⋅3▹4⋅5▹⋯▹8▹4▹2▹1.
+First the odd numbers from 3 up, then twice them, then four times them, and so on, and at the very end the powers of two going down. Sharkovskii's theorem says that a continuous map of an interval with a point of least period n has points of every least period that comes after n in this order. Period 3 is first, so it forces every period: "period three implies chaos". And a map with only finitely many periods has only powers of two, which is the period-doubling cascade seen from the other end.
+
+`sharkovskii.compare(a, b)` is a comparison function for this order, `forces(a, b)` answers whether period a forces period b, and `forced(n, limit)` lists what a period forces.
+
+| call | returns |
+
+| itinerary(f, x0, n, { critical }) | a string of L, R and C |
+
+| kneading(f, n, { critical }) | the itinerary of f(c) |
+
+| sharkovskii.order(limit), .compare(a, b), .forces(a, b), .forced(n, limit) | |
+
+### Try it
+
+```js
+PRINT("logistic r = 4 from 1/10:", itinerary(logistic(4), "1/10", 40));
+PRINT("tent map from 1/7:      ", itinerary(tent(2), "1/7", 12), " (1/7 = 0.001001…₂ has period 3)");
+for (const r of ["3.2", "3.5", "3.83", "3.9", "4"]) PRINT(`kneading sequence at r = ${r}:`, kneading(logistic(r), 24));
+PRINT("Sharkovskii's order up to 20:", sharkovskii.order(20).join(" ▷ "));
+PRINT("period 6 forces:", sharkovskii.forced(6, 20).join(", "));
+PRINT("does 5 force 3?", sharkovskii.forces(5, 3), "  does 3 force 5?", sharkovskii.forces(3, 5));
+// the period-3 window really does contain a point of period 5:
+logistic("3.84").periodicPointsIn(5, ["0.1", "0.99"], { digits: 12 }).filter((p) => p.leastPeriod === 5).length + " points of period 5 at r = 3.84"
+```
+
+---
+
+Page: https://ratmath.com/chaos/plane-maps.html
+
+Topic
+
+## Maps of the plane
+
+A map of the plane takes a point (x,y) to another. Two formulas are enough for folding, stretching and a strange attractor. Orbits come exact, enclosed or in doubles as on the line, and periodic points are proven to exist, each alone in a small box.
+
+```js
+const H = henon();                        // (x, y) → (1 − 1.4x² + y, 0.3x)
+H.orbit([0, 0], 3);                       // (0, 0), (1, 0), (−2/5, 3/10), (269/250, −3/25): the true orbit
+H.compare([0, 0], 150).parted;            // 93: the step where doubles have no digit right
+H.fixedPoints({ x: [-2, 2], y: [-1, 1] });        // two, each proven, and proven to be all
+H.exactPeriodicPoints(1).map((p) => p.text);      // [["(−7 − √609)/28", …], ["(−7 + √609)/28", "(−21 + 3√609)/280"]]
+planeMap(["x/2 + y/4 + 1", "x/4 - y/3"]);         // any two formulas
+```
+
+### The Hénon map
+
+Hénon's map is the simplest map of the plane with a strange attractor:
+
+H(x,y)=(1−ax2+y,bx),a=1.4, b=0.3.
+It bends the plane (the x2 term), squeezes it (the Jacobian determinant is −b everywhere, so areas shrink by the factor 0.3 at every step) and flips it. `H.determinant` is that constant, found by expanding the determinant of the Jacobian symbolically, and `H.areaPreserving` is true when it is 1 or −1.
+
+A rational starting point has a rational orbit, and `orbit` gives it. The number of digits doubles at each step, so long orbits are enclosed instead: `enclosedOrbit(p, n)` adds working digits until the last point is known to the accuracy asked for. `compare` sets the double orbit beside the true one. From (0,0) the doubles lose their last correct digit at step 93: the error doubles about every 1.6 steps, which is the Lyapunov exponent at work.
+
+### Periodic points, proven
+
+A point of period n is a solution of Fn(p)=p, two equations in two unknowns. `periodicPoints(n, region)` searches a rectangle by subdivision. A box is thrown away when interval arithmetic shows that Fn(p)−p cannot vanish in it. A box is kept as a solution when Krawczyk's test succeeds: with G=Fn−id, m the centre of the box X and C an approximate inverse of DG(m), if
+
+K(X)=m−CG(m)+(I−CDG(X))(X−m)
+lies in the interior of X, then G has exactly one zero in X, and it lies in K(X). So every point in the list exists and is the only one in its enclosure, and when the list's `complete` is true, the rest of the rectangle was proven empty. For the classical parameters the search finds 2 fixed points, one orbit of period 2, one of period 4, two of period 6 and four of period 7, and none of period 3 or 5.
+
+Each point comes with the eigenvalues of DFn there (its multipliers), as enclosures, and a verdict: `attracting` (both inside the unit circle), `repelling`, `saddle`, or `elliptic` for a complex pair of an area-preserving map. At a saddle, `unstable` and `stable` are the eigenvectors: the directions along which nearby points leave and arrive. The unstable direction at the fixed point on the attractor is the direction of the attractor's leaves there.
+
+### Periodic points, exact
+
+For a polynomial map the equations are polynomial. When one of them is of first degree in one unknown, that unknown can be eliminated and the other is a root of a polynomial in one variable: an algebraic number. For the Hénon family this works for periods 1 and 2, and `exactPeriodicPoints(n)` returns the points in closed form:
+
+x=2a−(1−b)±(1−b)2+4a​​,y=bx.
+For higher periods neither equation is linear, and the method says so; the proven enclosures above remain.
+
+### Lyapunov exponents
+
+A map of the plane has two exponents: the growth rate of a tangent vector, and of an area. `lyapunov(p, n)` estimates both in doubles, re-orthogonalising two tangent vectors at each step, and labels the result `kind: "estimated"`. One thing about them is exact: their sum is the average of log∣detDF∣, and when the determinant is constant that is log∣b∣. The result's `sum` is an enclosure of it, and the two estimates can be checked against it.
+
+### The standard map
+
+Chirikov's standard map models a kicked rotor,
+
+y′=y+2πk​sin(2πx),x′=x+y′,
+and keeps areas for every k: its determinant comes out as exactly 1, with the sines and cosines treated as symbols. `standardMap(k)` is the map lifted to the plane (take x and y modulo 1 to draw it on the torus). It has no rational orbits, so orbits are enclosed. Its fixed point at the origin is a saddle and the one at (21​,0) is elliptic for 0: the centre of the island that the pictures show.
+
+| call | returns |
+
+| planeMap([f, g], { variables, params }) | PlaneMap |
+
+| henon(a = "1.4", b = "0.3"), standardMap(k = 1) | PlaneMap |
+
+| F.at(p), F.float(p), F.enclose(p) | the image: exact, in doubles, enclosed |
+
+| F.orbit(p, n), F.floatOrbit(p, n), F.enclosedOrbit(p, n, { digits }) | orbits of the three kinds |
+
+| F.compare(p, n) | { rows: [{ n, float, exact, error, digits }], parted } |
+
+| F.jacobian(), F.determinant, F.areaPreserving | formulas; a Rational or null; a boolean |
+
+| F.periodicPoints(n, region, { all }) | [{ point, period, leastPeriod, multipliers, stability, stable, unstable }] with .complete |
+
+| F.fixedPoints(region), F.cycles(n, region) | the same for n = 1; points grouped into orbits |
+
+| F.exactPeriodicPoints(n) | [{ x, y, text, period, multipliers, stability }] |
+
+| F.lyapunov(p, n) | { exponents, kind: "estimated", sum } |
+
+### Try it
+
+```js
+const H = henon();
+const show = (iv) => iv.low.toDecimal(10);
+PRINT("true orbit of (0, 0):", H.orbit([0, 0], 4).map((p) => `(${p.join(", ")})`).join("  "));
+PRINT("doubles have no correct digit from step", H.compare([0, 0], 150).parted);
+const region = { x: [-2, 2], y: [-1, 1] };
+for (const n of [1, 2, 3, 4, 5, 6, 7]) {
+  const pts = H.periodicPoints(n, region);
+  PRINT(`least period ${n}: ${pts.length} points, ${pts.length / n} orbits${pts.complete ? ", proven to be all" : ""}`);
+}
+const p = H.fixedPoints(region)[1];
+PRINT("fixed point on the attractor:", p.point.map(show).join(", "), " ", p.stability);
+PRINT("  multipliers", p.multipliers.map((e) => show(e.re)).join(" and "));
+PRINT("  unstable direction (1, " + show(p.unstable[1]) + "), stable direction (" + show(p.stable[0]) + ", 1)");
+PRINT("exactly:", H.exactPeriodicPoints(1)[1].text.join(", "));
+const l = H.lyapunov([0, 0], 20000);
+PRINT("exponents (estimated):", l.exponents.map((x) => x.toFixed(4)).join(", "), " sum", (l.exponents[0] + l.exponents[1]).toFixed(6));
+`log 0.3 = ${show(l.sum)}, the sum exactly`
+```
+
+---
+
+Page: https://ratmath.com/chaos/cat-map-and-horseshoe.html
+
+Topic
+
+## The cat map and the horseshoe
+
+Two maps of the plane can be done with no approximation at all, and they are the two that explain the rest: the cat map, where chaos is linear algebra, and the horseshoe, where it is counting words.
+
+```js
+const cat = catMap();                       // (x, y) → (2x + y, x + y) mod 1
+cat.period(["3/101", "7/101"]).period;      // 25: every rational point is periodic
+cat.floatPartsAt(["3/101", "7/101"]);       // 38: the step at which doubles have lost that orbit
+cat.fixedPointCount(5);                     // 121n points fixed by the fifth iterate
+cat.entropy().text;                         // "log((3 + √5)/2)"
+
+const hs = horseshoe();
+hs.periodicPoint("011");                    // [9/13, 3/13], the point whose itinerary is 011011011…
+hs.orbitCount(6);                           // 9 orbits of least period 6
+```
+
+### The cat map
+
+Arnold's cat map acts on the torus, the unit square with opposite sides glued:
+
+(xy​)↦(21​11​)(xy​)mod1.
+The matrix has whole entries and determinant 1, so the map is invertible and keeps areas. Its eigenvalues are λ=23+5​​≈2.618 and 1/λ: every small disc is stretched by λ along one direction and squeezed along the other, at every point, in the same directions. `eigen()` gives the eigenvalues and the slopes of the two directions as exact numbers in Q(5​); the slopes are irrational, which is why the stretched disc winds densely round the torus instead of closing up.
+
+Rational points. A point with coordinates i/q,j/q goes to another such point, and there are only q2 of them, so (the map being invertible) every rational point is periodic. `period(p)` finds the period by exact iteration and `periods(q)` tabulates all points of denominator q. These are the famous pictures of a cat that reassembles after a few hundred steps: the pixels are rational points.
+
+What doubles do. The same orbit in doubles is not periodic. Each step multiplies the rounding error by λ, so after n steps an error of 10−16 has grown to 10−16λn, which reaches the size of the torus near n=38. `floatPartsAt` reports that step. The true orbit of (3/101,7/101) returns after 25 steps for ever; the double orbit never returns.
+
+Counting. The fixed points of the n-th iterate are the solutions of (An−I)p≡0, and there are exactly ∣det(An−I)∣ of them: 1, 5, 16, 45, 121, … (`fixedPointCount`). They grow like λn, and the growth rate logλ is the map's topological entropy and its Lyapunov exponent, which `entropy()` returns as a formula and an enclosure.
+
+`torusMap(matrix)` takes any 2 × 2 matrix of whole numbers; `hyperbolic` says whether it has an eigenvalue on the unit circle (a rotation by a quarter turn does, and is not chaotic).
+
+### The horseshoe
+
+Smale's horseshoe takes a square, squeezes it to a third of its width, stretches it to three times its height, folds it and lays it back over the square. In the piecewise linear form used here,
+
+H(x,y)={(x/3,3y)(1−x/3,3−3y)​y≤1/3(symbol 0)y≥2/3(symbol 1)​
+and a point with 1/3 leaves the square. The points that stay for n steps form 2n horizontal strips (`strips(n)`), the stages of the middle-thirds Cantor set; the points that have been in the square for the last n steps form 2n vertical strips. The points that never leave in either direction are a product of two Cantor sets, of dimension 2log2/log3.
+
+Symbolic dynamics. Write 0 or 1 according to which strip the point is in at each step. Every sequence of 0s and 1s is the itinerary of exactly one point of the invariant set, and applying H shifts the sequence. So the horseshoe contains, exactly:
+
+- a periodic point for every periodic sequence: periodicPoint("011") solves the affine fixed-point equation along the word and returns a rational point; there are 2n points fixed by Hn, and orbitCount(n) orbits of least period n (2, 1, 2, 3, 6, 9, …);
+
+- orbits that come arbitrarily close to every point of the set (take a sequence that contains every finite word);
+
+- sensitive dependence: two points whose sequences first differ at step n are in different strips at step n.
+
+The horseshoe matters because it is found inside other systems. Wherever a map stretches and folds a region across itself, a horseshoe sits inside, and with it all of the above. The saddle periodic orbits of the [Hénon map](https://ratmath.com/chaos/plane-maps.html) and of the [Lorenz system](https://ratmath.com/chaos/periodic-orbits.html) on the neighbouring pages are the visible part of such sets.
+
+| call | returns |
+
+| catMap(), torusMap(matrix) | TorusMap |
+
+| T.at(p), T.orbit(p, n), T.floatOrbit(p, n) | exact points of the torus; doubles |
+
+| T.period(p) | { period, preperiod, cycle } |
+
+| T.periods(q) | Map from period to the number of points of denominator q with it |
+
+| T.fixedPointCount(n) | bigint, \|det(Aⁿ − I)\| |
+
+| T.eigen() | [{ value, text, direction, directionText, expanding }] |
+
+| T.entropy() | { text, value: RationalInterval } |
+
+| T.floatPartsAt(p) | the step at which the double orbit has left the true one |
+
+| horseshoe() | Horseshoe |
+
+| S.at(p), S.itinerary(p, n) | the image or null; a string of 0s and 1s |
+
+| S.periodicPoint(word), S.periodicPoints(n), S.orbitCount(n) | exact points; all 2ⁿ with word and least period; a count |
+
+| S.strips(n), S.dimension | exact intervals; { text, value } |
+
+### Try it
+
+```js
+const cat = catMap();
+PRINT(String(cat));
+PRINT("orbit of (1/5, 2/5):", cat.orbit(["1/5", "2/5"], 3).map((p) => `(${p.join(", ")})`).join(" "));
+PRINT("period of (3/101, 7/101):", cat.period(["3/101", "7/101"]).period, "  doubles lose it at step", cat.floatPartsAt(["3/101", "7/101"]));
+PRINT("periods of the points with denominator 10:", [...cat.periods(10)].map(([p, k]) => `${k} of period ${p}`).join(", "));
+PRINT("fixed points of the n-th iterate:", [1, 2, 3, 4, 5, 6, 7, 8].map((n) => cat.fixedPointCount(n)).join(", "));
+for (const e of cat.eigen()) PRINT(`eigenvalue ${e.text}, direction of slope ${e.directionText}, ${e.expanding ? "expanding" : "contracting"}`);
+PRINT("entropy", cat.entropy().text, "=", cat.entropy().value.low.toDecimal(15));
+
+const hs = horseshoe();
+for (const w of ["0", "1", "01", "011", "0010111"]) {
+  const p = hs.periodicPoint(w);
+  PRINT(`word ${w}: point (${p.join(", ")}), itinerary ${hs.itinerary(p, 14)}`);
+}
+PRINT("orbits of least period 1 to 10:", Array.from({ length: 10 }, (_, i) => hs.orbitCount(i + 1)).join(", "));
+PRINT("strips after 2 steps:", hs.strips(2).horizontal.map(([a, b]) => `[${a}, ${b}]`).join(" "));
+`dimension of the invariant set: ${hs.dimension.text} = ${hs.dimension.value.toFixed(6)}`
+```
+
+---
+
+Page: https://ratmath.com/chaos/flows.html
+
+Topic
+
+## Flows, enclosed
+
+A flow is the motion defined by a system of differential equations x′=f(x). On a chaotic flow a numerical solver drifts off the true solution like a float orbit does, only more quietly. Here the solution is enclosed: boxes that are proven to contain it, for a point or for a whole box of starting points.
+
+```js
+const L = lorenz();                            // x′ = 10(y − x), y′ = x(28 − z) − y, z′ = xy − (8/3)z
+const s = L.solve([1, 1, 1], 20);
+s.final;                                       // three intervals, each about 10⁻⁶ wide, that hold x(20), y(20), z(20)
+s.at("7/2");                                   // the same at any earlier time
+L.floatOrbit([1, 1, 1], 20, { steps: 2000 });  // Runge–Kutta: ends at 13.47…, but the true x(20) is 13.7931…
+flow(["y", "-x - y^3"], { variables: ["x", "y"] });   // any formulas
+```
+
+### The systems
+
+- lorenz(s, r, b): x′=s(y−x), y′=x(r−z)−y, z′=xy−bz, by default 10, 28, 8/3: Lorenz's model of convection and the first strange attractor.
+
+- rossler(a, b, c): x′=−y−z, y′=x+ay, z′=b+z(x−c): one nonlinear term, and a band that folds once.
+
+- vanDerPol(mu): x′=y, y′=μ(1−x2)y−x: an oscillator that settles on one limit cycle whatever the start.
+
+- pendulum(c): x′=y, y′=−sinx−cy.
+
+- flow(formulas, { variables, params }) for anything else built from + − × ÷, whole powers, sin and cos. Parameters are exact numbers, and with({ r: 24 }) gives the same family at other values.
+
+### How the solution is enclosed
+
+The solver takes steps. In one step of length h from a set of points:
+
+- A rough box. A box R with X+[0,h]f(R)⊆R contains the solution on the whole step, by the Picard–Lindelöf theorem.
+
+- A Taylor polynomial with a bounded remainder. The Taylor coefficients of the solution are computed from the formulas by automatic differentiation, in interval arithmetic. The polynomial of degree 12 from the centre of the set is the main part; the next coefficient, taken over all of R, bounds what was left out.
+
+- The derivative of the flow. The same is done for the variational equation V′=Df(x)V, which gives an interval matrix A containing the derivative of the time-h map at every point of the set. By the mean value theorem the image of the set lies in (image of the centre) + A·(set − centre).
+
+- Sets that turn. A set is kept as a centre, a frame and a box of coordinates in that frame, and the new frame is the orthogonal factor of A times the old one (Lohner's method). A box with fixed axes would be re-wrapped at every step and grow even on a rigid rotation; a frame that turns with the flow does not.
+
+All arithmetic is in doubles rounded outward, so the bounds are bounds, and since a double is an exact rational the results are handed back as `RationalInterval`s. The sine and cosine come from their own series with the remainder bounded, not from the platform's.
+
+### What it shows on a chaotic flow
+
+From (1,1,1) the Lorenz solution is enclosed to within 10−9 at t=10, 10−6 at t=20 and 0.04 at t=30: the enclosure widens at the rate the flow separates orbits (the Lyapunov exponent is about 0.9, so a factor of e9≈8000 per ten time units), because rounding errors are perturbations too and the enclosure has to hold them all. That widening is the honest part. A Runge–Kutta solver with 2000 steps returns x(20)=13.47 with nothing to say that only the first two digits are right; the enclosure shows 13.7931.
+
+The same widening limits how far a set can be followed. A box of starting points of width w picks up an error of order w2 per step from the curvature of the flow, so thin sets go far and wide ones do not. When no enclosure can be found the solver stops and says where: `complete` is false, `reached` is the time it got to, and `reason` says why. A solution that blows up in finite time, such as x′=x2 from 1, ends that way just before t=1.
+
+For a single orbit to many digits there is also analytic's `ode.solve`, which works in exact rational arithmetic with Taylor models. It is some hundred times slower, and it is what to use when 15 digits are not enough.
+
+| call | returns |
+
+| flow(formulas, { variables, params }) | Flow |
+
+| lorenz(s, r, b), rossler(a, b, c), vanDerPol(mu), pendulum(c) | Flow |
+
+| F.solve(p0, until, { order = 12, maxStep, maxSteps }) | { final, at(t), complete, reason, reached, steps, width } |
+
+| F.floatOrbit(p0, until, { steps }) | { t, points } by Runge–Kutta in doubles |
+
+| F.with(params), F.jacobian(), F.velocity(p) | the family at other parameters; formulas; the field in doubles |
+
+### Try it
+
+```js
+const L = lorenz();
+PRINT(String(L));
+const wide = (s) => s.width.toExponential(1);
+for (const T of [5, 10, 20]) {
+  const s = L.solve([1, 1, 1], T);
+  PRINT(`t = ${T}: x in [${s.final[0].low.toDecimal(8)}, ${s.final[0].high.toDecimal(8)}], width ${wide(s)}, ${s.steps} steps`);
+}
+for (const steps of [2000, 20000]) PRINT(`Runge–Kutta, ${steps} steps: x(20) = ${L.floatOrbit([1, 1, 1], 20, { steps }).points.at(-1)[0].toFixed(8)}`);
+
+const box = flow(["-x"]).solve([[1, 2]], 1);
+PRINT("x′ = −x from the box [1, 2] to t = 1:", box.final[0].low.toDecimal(8), "to", box.final[0].high.toDecimal(8), " (1/e and 2/e)");
+const up = flow(["x^2"]).solve([1], 2);
+PRINT("x′ = x² from 1: complete", up.complete, " reached t =", up.reached.low.toDecimal(4));
+const P = pendulum().solve(["1/2", 0], 10);
+`pendulum from angle 1/2 at t = 10: ${P.final[0].low.toDecimal(11)}, width ${wide(P)}`
+```
+
+---
+
+Page: https://ratmath.com/chaos/periodic-orbits.html
+
+Topic
+
+## Sections and periodic orbits
+
+Cut a flow with a plane and watch where orbits come back to it: the flow becomes a map, and a periodic orbit becomes a fixed point. Because the return map and its derivative are enclosed, the fixed point can be proven to exist. That turns a closed curve on a screen into a theorem.
+
+```js
+const V = vanDerPol(1);
+const section = { variable: "y", value: 0, direction: -1 };      // y = 0, crossed with y decreasing
+V.returnMap(section, { x: 2 });               // { point: [2.0086122778…], time: 6.65156…, derivative: [[0.00089996…]] }
+const orbit = V.periodicOrbit(section, { x: 2 });
+orbit.proven;                                 // true
+orbit.period;                                 // 6.66328685932…, an interval 10⁻¹² wide
+orbit.stability;                              // "attracting"
+
+lorenz().periodicOrbit({ variable: "z", value: 27 }, { x: -13.76, y: -19.58 }, { returns: 2 });
+// proven: a saddle orbit of period 1.558652210…, expanding by 4.7129 each time round
+```
+
+### The return map
+
+A section is a plane {xj​=v} with a direction of crossing: `{ variable: "z", value: 27, direction: 1 }` means the plane z=27 crossed with z increasing. Its points are named by the other variables. The first-return map P sends a point of the section to the next point where its orbit crosses the section in the same direction.
+
+`returnMap(section, start)` follows a point, or a box of points given as intervals, and returns enclosures of P, of the time taken, and of the derivative DP in the section's coordinates. On the way the solver watches every step for crossings: a step whose rough box meets the plane must have the field pointing strictly through it, so each crossing is counted once and in the right direction; if the field might be tangent to the section there, the call stops and says so. At the crossing itself each point of the set is moved along the field onto the plane, which gives
+
+DP=(I−fj​fejT​​)Dφτ​,
+the derivative of the flow with the direction of the flow projected out. `returns: k` gives the k-th return.
+
+### Proving a periodic orbit
+
+A periodic orbit crosses the section at a fixed point of P (or of Pk). `periodicOrbit(section, guess)` first improves the guess by Newton's method on P(x)−x, using the enclosed return map as a very accurate numerical one. Then it takes a small box X round the candidate m and applies Krawczyk's test to G(x)=P(x)−x:
+
+K(X)=m−CG(m)+(I−C(DP(X)−I))(X−m)⊂intX.
+When the inclusion holds, P has exactly one fixed point in X: a periodic orbit exists, it crosses the section inside the box returned as `point`, and no other periodic orbit of that many returns crosses within `radius` of it. The test needs DP−I to be invertible, so it works for attracting, repelling and saddle orbits alike; it does not work at an orbit with a multiplier equal to 1, and there the result has `proven: false` and a reason.
+
+The eigenvalues of DP at the fixed point are the orbit's multipliers (Floquet multipliers): all inside the unit circle for an attracting cycle, on both sides for a saddle.
+
+### Three orbits
+
+Van der Pol. The limit cycle for μ=1 crosses y=0 at x=2.00861986087… with period 6.66328685932…, and the return map contracts by the factor 0.00086 there: after one turn a nearby orbit is a thousand times closer.
+
+Rössler. For c=2.5 the attractor is a single cycle, proven attracting. For the classical c=5.7 the attractor is chaotic, and the orbit that turns once is still there inside it, as a saddle with multiplier −2.40: the minus sign says that the band it lives on is twisted like a Möbius strip.
+
+Lorenz. The attractor contains infinitely many periodic orbits, all of them saddles, and none can be found by waiting for an orbit to settle. The shortest winds once round each wing. It crosses z=27 upward twice per period, so it is a fixed point of the second return: `{ returns: 2 }`. Its period, 1.5586522107…, agrees with the value computed by Viswanath to many more digits, and here it is the period of an orbit that provably exists.
+
+| call | returns |
+
+| F.returnMap(section, start, { returns = 1 }) | { variables, point, time, derivative }, all enclosures |
+
+| F.periodicOrbit(section, guess, { returns = 1, radius }) | { proven: true, point, period, multipliers, stability, radius } or { proven: false, point, reason } |
+
+| section | { variable, value = 0, direction = 1 }: direction 1 or "up", −1 or "down" |
+
+### Try it
+
+```js
+const show = (iv, n = 11) => iv.low.toDecimal(n);
+const tell = (name, o) => {
+  if (!o.proven) return PRINT(name, "not proven:", o.reason);
+  PRINT(`${name}: proven, ${o.stability}`);
+  PRINT(`  crosses at (${o.point.map((x) => show(x, 9)).join(", ")}), period ${show(o.period)}`);
+  PRINT(`  multipliers ${o.multipliers.map((e) => e.re.high.toNumber().toPrecision(5)).join(", ")}`);
+};
+const down = { variable: "y", value: 0, direction: -1 };
+const V = vanDerPol(1);
+const r = V.returnMap(down, { x: 2 });
+PRINT("Van der Pol, one return from x = 2:", show(r.point[0]), "after time", show(r.time, 8), " derivative", r.derivative[0][0].low.toDecimal(8));
+tell("Van der Pol, μ = 1", V.periodicOrbit(down, { x: 2 }));
+tell("Rössler, c = 2.5", rossler("0.2", "0.2", "2.5").periodicOrbit(down, { x: -3.7, z: 0.03 }));
+tell("Rössler, c = 5.7", rossler().periodicOrbit(down, { x: -7.2, z: 0.02 }));
+tell("Lorenz, once round each wing", lorenz().periodicOrbit({ variable: "z", value: 27 }, { x: -13.76, y: -19.58 }, { returns: 2 }));
+tell("a damped oscillator", flow(["y", "-x - y"]).periodicOrbit(down, { x: 1 }));
+```
+
+---
+
+Page: https://ratmath.com/chaos/equilibria.html
+
+Topic
+
+## Equilibria and their bifurcations
+
+An equilibrium is a point where the field vanishes. Which ones exist, and whether they attract, is the skeleton of a flow, and the parameter values at which that skeleton changes are its bifurcations.
+
+```js
+const L = lorenz();
+const box = { x: [-30, 30], y: [-30, 30], z: [-10, 60] };
+L.equilibria(box).map((e) => e.kind);          // ["saddle-focus", "saddle", "saddle-focus"], proven to be all
+L.bifurcations("r", ["1/2", 30], box);
+// a pitchfork with r between 0.99999989 and 1.00000056,
+// a Hopf bifurcation with r between 24.73684178 and 24.73684237   (470/19 = 24.7368421…)
+```
+
+### Finding every equilibrium
+
+`equilibria(region)` solves f(x)=0 in a box, with a range for each variable. As for [periodic points of maps](https://ratmath.com/chaos/plane-maps.html), the box is subdivided; a piece is discarded when interval arithmetic shows that f cannot vanish on it, and kept when Krawczyk's test proves that it holds exactly one zero. The list's `complete` says that everything else was discarded, so the list is all of them.
+
+Each equilibrium comes with the eigenvalues of the Jacobian there, as enclosures, and a `kind` read from the signs of their real parts:
+
+- sink or spiral sink: all real parts negative; nearby orbits come in (spiralling when there is a complex pair). stability: "stable".
+
+- source or spiral source: all positive.
+
+- saddle or saddle-focus: some of each; unstableDimension counts the positive ones.
+
+- undecided: an enclosure of a real part contains 0. The linearisation does not decide stability there, and the library does not guess.
+
+That the linearisation does decide in the other cases is the Hartman–Grobman theorem: near an equilibrium with no eigenvalue on the imaginary axis, the flow looks like its linear part.
+
+### Bifurcations
+
+As a parameter moves, equilibria move with it, and at special values they are created, destroyed or change stability. Each of these needs an eigenvalue to cross the imaginary axis:
+
+- Saddle-node (fold): two equilibria, one more stable than the other, collide and vanish. Normal form x′=μ−x2.
+
+- Pitchfork: one equilibrium changes stability and throws off two new ones. Normal form x′=μx−x3; it needs a symmetry.
+
+- Transcritical: two equilibria pass through each other and exchange stability. Normal form x′=μx−x2.
+
+- Hopf: a complex pair crosses the axis; a spiral sink becomes a spiral source, and a periodic orbit is born or dies there.
+
+`bifurcations(param, [from, to], region)` samples the parameter range, and at each sample proves and classifies all the equilibria. Where two neighbouring samples differ, in number or in stability after the equilibria have been paired by position, the bracket is halved, again and again, until it is narrower than `tol` (one millionth by default). The kind is read from what changed. What is certified is the two ends: at `parameter[0]` the equilibria are exactly as listed under `before`, and at `parameter[1]` as under `after`. Close to a bifurcation the proofs get harder, because that is where the Jacobian stops being invertible; if they stop succeeding before the bracket is narrow enough, the result has `stalled: true` and the wider bracket.
+
+### The Lorenz system, as r grows
+
+For r the origin is the only equilibrium and it attracts everything: no convection. At r=1 a pitchfork: the origin becomes a saddle and two new sinks appear at x=y=±b(r−1)​, convection rolls turning one way or the other. They are stable until
+
+r=s−b−1s(s+b+3)​=19470​≈24.7368,
+where a Hopf bifurcation makes both unstable. Beyond it no equilibrium attracts, and at r=28 the orbits wander on the strange attractor for ever. The search finds both bifurcations without being told the formula.
+
+| call | returns |
+
+| F.equilibria(region, { tol, maxBoxes }) | [{ point, eigenvalues, kind, stability, unstableDimension, spiral }] with .complete |
+
+| F.bifurcations(param, [from, to], region, { samples = 24, tol }) | [{ parameter: [lo, hi], kind, before, after, stalled }] |
+
+### Try it
+
+```js
+const show = (iv, n = 8) => iv.low.toDecimal(n);
+const L = lorenz();
+const box = { x: [-30, 30], y: [-30, 30], z: [-10, 60] };
+const eq = L.equilibria(box);
+PRINT("Lorenz at r = 28:", eq.length, "equilibria, complete:", eq.complete);
+for (const e of eq) PRINT(`  (${e.point.map((x) => show(x, 6)).join(", ")})  ${e.kind}, eigenvalues ${e.eigenvalues.map((v) => v.re.low.toDecimal(4) + (v.im.high.toNumber() > 0 ? " + " + v.im.low.toDecimal(4) + "i" : v.im.low.toNumber() < 0 ? " − " + v.im.high.negate().toDecimal(4) + "i" : "")).join(", ")}`);
+for (const b of L.bifurcations("r", ["1/2", 30], box)) PRINT(`  ${b.kind} for r between ${b.parameter[0].toDecimal(8)} and ${b.parameter[1].toDecimal(8)}: ${b.before.join(", ")} → ${b.after.join(", ")}`);
+PRINT("470/19 =", (470 / 19).toFixed(8));
+const one = (f) => flow([f], { params: { mu: 0 } }).bifurcations("mu", [-1, 1], { x: [-3, 3] })[0];
+for (const f of ["mu - x^2", "mu*x - x^3", "mu*x - x^2"]) {
+  const b = one(f);
+  PRINT(`x′ = ${f}: ${b.kind} with μ in [${b.parameter[0].toNumber().toExponential(1)}, ${b.parameter[1].toNumber().toExponential(1)}]`);
+}
+const h = vanDerPol(0).bifurcations("mu", [-1, 1], { x: [-3, 3], y: [-3, 3] })[0];
+PRINT(`Van der Pol: ${h.kind} at μ = 0: ${h.before} → ${h.after}`);
+pendulum("1/2").equilibria({ x: [-4, 4], y: [-1, 1] }).map((e) => `${e.kind} at x = ${show(e.point[0], 10)}`)
+```
+
+---
+
+Page: https://ratmath.com/chaos/iterated-function-systems.html
+
+Topic
+
+## Iterated function systems
+
+A handful of maps that each shrink the plane determine one compact set, the attractor, that is the union of its own images. With rational coefficients its stages are exact, and its dimension is exact or proven.
+
+```js
+const S = attractors.sierpinski();          // three maps (x, y) → (x/2, y/2) + shift
+S.stage(5);                                  // 243 exact rational points
+S.contraction();                             // { bounds: [1/2, 1/2, 1/2], contracting: true }
+S.similarityDimension();                     // log 3 / log 2, as a certified interval
+S.chaosGame(20000, { seed: 7 });             // float points, kind "estimated"
+new IFS([{ a: "1/3", d: "1/3" }, { a: "1/3", d: "1/3", e: "2/3" }]);   // the Cantor set on a line
+```
+
+### Hutchinson's theorem
+
+Let f1​,…,fN​ be maps of the plane with ∣fi​(p)−fi​(q)∣≤ri​∣p−q∣ and every ri​<1. The map on compact sets F(K)=f1​(K)∪⋯∪fN​(K) is then a contraction in the Hausdorff distance, so it has exactly one fixed set A=F(A), and Fn(K)→A from any start. That set is the attractor.
+
+Each map here is affine, (x,y)↦(ax+by+e, cx+dy+f), with rational coefficients, written as an `Affine` or as a plain object such as `{ a: "1/2", d: "1/2", e: "1/4", f: "1/2" }`. `stage(n)` applies F n times to the fixed point of the first map (which lies in A), so every point it returns is a point of the attractor, exactly.
+
+### Is it a contraction?
+
+The Lipschitz constant of an affine map is the largest singular value of its matrix, σ=λmax​(MTM)​, usually irrational. `contraction()` returns a rational upper bound for each map, from λmax​=2t+t2−4det2​​ with t=a2+b2+c2+d2, every square root rounded up. When all bounds are below 1 the attractor exists. The bound is exact for similarities, so the dragons' 1/2​ comes out as the rational just above it.
+
+### Similarity dimension
+
+When every map is a similarity with ratio ri​ (a rotation or reflection times a scale), the similarity dimension is the s with
+
+r1s​+⋯+rNs​=1
+(Moran's equation). If the pieces overlap little (the open set condition), this is also the Hausdorff dimension. With equal ratios, s=logN/log(1/r): exact when that is rational, as for the Heighway dragon (two pieces of ratio 1/2​, so s = 2), and otherwise a certified interval, as for Sierpinski's log3/log2. Unequal ratios are solved by bisection with each term enclosed, so `moran(["1/2", "1/4"])` encloses log2​φ, the golden ratio's logarithm. The open set condition is not checked.
+
+### The chaos game, and box counting
+
+Picking one map at random each step and applying it to a point gives points that fill the attractor (the probabilities matter for Barnsley's fern, where the stem map is chosen 1% of the time). The library seeds its own generator, so a picture can be repeated, and returns floats with `kind: "estimated"`. `boxCounting(points)` counts the boxes of side 2−k the points meet and fits a line: an estimate of the box dimension, which for Sierpinski comes out near 1.585.
+
+| call | returns |
+
+| new IFS(maps, { name, probabilities }) | An IFS; maps are Affine or { a, b, c, d, e, f } |
+
+| stage(n, start), step(points), fixedPoint(i) | Exact rational points |
+
+| contraction() | { bounds, contracting } |
+
+| similarityDimension(), moran(ratios) | { kind: "exact" \| "certified", value, interval, formula } |
+
+| chaosGame(n, { seed, skip }), boxCounting(points, { scales }) | Estimated: Float64Array points; { dimension, rows } |
+
+| attractors | sierpinski, carpet, vicsek, cantorDust, heighway, levyDragon, barnsley |
+
+### Try it
+
+```js
+const S = attractors.sierpinski();
+const pts = S.stage(3);
+PRINT(`stage 3 has ${pts.length} exact points, e.g.`, pts.slice(0, 4).map(([x, y]) => `(${x}, ${y})`).join(" "));
+PRINT("contraction bounds:", S.contraction().bounds.join(", "));
+const d = S.similarityDimension();
+PRINT(`dimension ${d.formula} in [${d.interval[0].toDecimal(10)}, ${d.interval[1].toDecimal(10)}]`);
+PRINT("Heighway dragon:", attractors.heighway().similarityDimension().value.toString(), "(exact)");
+const g = moran(["1/2", "1/4"]);
+PRINT("(1/2)^s + (1/4)^s = 1 at s ≈", g.interval[0].toDecimal(10), "  log2(golden ratio) =", Math.log2((1 + Math.sqrt(5)) / 2).toFixed(10));
+// a small picture from the chaos game
+const fern = attractors.barnsley().chaosGame(30000, { seed: 3 });
+const W = 40, H = 24, grid = Array.from({ length: H }, () => Array(W).fill(" "));
+for (let i = 0; i < fern.count; i++) {
+  const x = Math.floor(((fern.points[2 * i] + 2.7) / 5.5) * W), y = H - 1 - Math.floor((fern.points[2 * i + 1] / 10.01) * H);
+  if (x >= 0 && x < W && y >= 0 && y < H) grid[y][x] = "*";
+}
+PRINT("box dimension of the Sierpinski triangle, estimated:", boxCounting(S.chaosGame(20000)).dimension.toFixed(3));
+grid.map((r) => r.join("")).join("\n")
+```
+
+---
+
+Page: https://ratmath.com/chaos/cantor-sets.html
+
+Topic
+
+## Cantor sets and dimension
+
+The middle-thirds Cantor set is the numbers in [0, 1] with a base-3 expansion using only the digits 0 and 2. Whether a fraction belongs to it is a question with a definite answer, and the library answers it exactly.
+
+```js
+const C = cantor();                         // base 3, digits 0 and 2
+C.contains("1/4");                           // { inside: true, expansion: "0.#02" }: 0.020202… in base 3
+C.contains("1/2");                           // { inside: false, … }
+C.stage(3);                                  // the 8 intervals of the third stage, exactly
+C.measure(10);                               // 1024/59049
+C.dimension();                               // log 2 / log 3, certified
+cantor({ base: 10, digits: [0, 1, 2, 3, 4, 5, 6, 7, 8] });   // decimals without a 9
+```
+
+### Membership is decidable
+
+x is in the set exactly when some allowed digit d leaves 3x−d in [0, 1] and in the set again. For a rational x=n/D every number reached this way has the same denominator D, and there are only D + 1 such numbers in [0, 1]. So the steps form a finite graph, and x is in the set exactly when the graph has an infinite path from x, which means a path that reaches a cycle. `contains` searches for one and returns the repeating expansion it found. A number can have two expansions (1/3 is 0.1000… and also 0.0222…), and the search finds the allowed one when there is one.
+
+The answer is not a matter of precision. 1/4 is in the Cantor set although it is never an end point of a removed interval, and 1/2 is not, although every stage contains points as close to it as you like.
+
+### Stages, measure and dimension
+
+Stage n is the union of kn intervals of length b−n, where k is the number of allowed digits; touching intervals are merged. The total length is (k/b)n, which tends to 0 whenever a digit is missing, so the set has measure zero. Its dimension is logk/logb: the set is made of k copies of itself scaled by 1/b. That is exact when rational (base 4 with two digits gives 1/2) and a certified interval otherwise.
+
+The expansion of any rational in any base, with its repeating part marked by `#`, comes from Core: `C.expansion("1/4")`.
+
+| call | returns |
+
+| cantor({ base = 3, digits = [0, 2] }) | A DigitCantor |
+
+| contains(q) | { inside, expansion?, reason } |
+
+| expansion(q) | Core's base-b expansion, with # before the repeating part |
+
+| stage(n), measure(n) | [lo, hi] rational pairs; (k/b)^n |
+
+| dimension() | { kind, value, interval, formula } |
+
+### Try it
+
+```js
+const C = cantor();
+for (const q of ["1/4", "3/4", "1/3", "1/10", "1/2", "9/13", "1/13"]) {
+  const r = C.contains(q);
+  PRINT(q.padEnd(5), r.inside ? `inside, base 3 ${r.expansion}` : "not inside", "   Core:", C.expansion(q));
+}
+PRINT("stage 2:", C.stage(2).map(([a, b]) => `[${a}, ${b}]`).join(" "));
+PRINT("measure of stage 20:", C.measure(20).toString());
+const d = C.dimension();
+PRINT("dimension", d.formula, "≈", d.interval[0].toDecimal(12));
+// fractions with denominator below 30 that lie in the set
+const found = [];
+for (let D = 2; D < 30; D++) for (let n = 1; n < D; n++) if (C.contains(`${n}/${D}`).inside && gcd(n, D) === 1) found.push(`${n}/${D}`);
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+found.join(" ")
+```
+
+---
+
+Page: https://ratmath.com/chaos/l-systems.html
+
+Topic
+
+## L-systems
+
+An L-system rewrites every symbol of a string at once, then a turtle draws the result. The strings grow exponentially, but how many of each symbol they hold is a matrix power, exact for any n, and for angles that are multiples of 30° every point the turtle visits is exactly a + b√3.
+
+```js
+const K = lsystems.koch();                  // axiom F, F → F+F--F+F, angle 60°
+K.generate(2);                               // the string after two rewritings
+K.counts(100).counts.F;                      // 4^100, exactly, without writing the string
+K.turtle(3).exactSegments;                   // end points as Q3 numbers a + b√3
+lsystem({ axiom: "X", rules: { X: "F+[[X]-X]-F[-FX]+X", F: "FF" }, angle: 25 });
+```
+
+### Parallel rewriting
+
+An L-system has an axiom and rules mapping single symbols to strings; symbols without a rule are copied. One step rewrites every symbol at the same time. Lindenmayer used them for the growth of plants, where every cell divides at once. `generate(n)` writes the string out, refusing past five million symbols.
+
+### Counting without writing
+
+Let Mab​ be the number of b in the rule for a. If v counts the symbols of the axiom, then vMn counts the symbols after n steps, and repeated squaring gives Mn with BigInt entries in about log2​n multiplications. For the Koch curve M has the eigenvalue 4, so the curve has 4n segments, each 3−n long: its length (4/3)n grows without bound while it stays in a bounded region. For the dragon the counts follow powers of 2.
+
+### The turtle, exactly
+
+F and G draw a unit step, f moves without drawing, + and − turn by the angle, | turns around, and [ ] save and restore the position and heading. When the angle is a multiple of 30°, cos and sin of every heading are among 0,±21​,±1,±23​​, so every position is a+b3​ with rational a and b. The library carries those as `Q3` numbers, which is how it can say the Koch snowflake closes up exactly: its end point is (0, 0), not something within 10⁻¹⁵ of it. Other angles (the 25° plant, the 45° Lévy curve) are drawn in floats and the result says `kind: "float"`.
+
+| call | returns |
+
+| lsystem({ axiom, rules, angle, draw = "FG", move = "f" }) | An LSystem |
+
+| generate(n) | The string |
+
+| counts(n) | { counts: { symbol: BigInt }, length: BigInt } |
+
+| turtle(n, { step }) | { kind, segments, exactSegments, end } |
+
+| lsystems | koch, snowflake, arrowhead, dragon, hilbert, levy, plant |
+
+| Q3 | a + b√3: add, mul, equals, toNumber, toString |
+
+### Try it
+
+```js
+const K = lsystems.koch();
+PRINT("after 2 steps:", K.generate(2));
+const c = K.counts(60);
+PRINT("after 60 steps: F appears", c.counts.F.toString(), "times; length", c.length.toString());
+const S = lsystems.snowflake().turtle(2);
+PRINT("snowflake, stage 2:", S.segments.length, "segments, ends at (", S.end.map(String).join(", "), ")");
+PRINT("a corner of it:", S.exactSegments[5].slice(2).map(String).join(", "));
+// draw the Hilbert curve on a character grid
+const H = lsystems.hilbert().turtle(3);
+const n = 8, grid = Array.from({ length: 2 * n - 1 }, () => Array(2 * n - 1).fill(" "));
+for (const [x1, y1, x2, y2] of H.segments) {
+  const [a, b, c2, d] = [x1, y1, x2, y2].map((v) => Math.round(v));
+  grid[2 * n - 2 - (b + d)][a + c2] = a === c2 ? "|" : "-";
+  grid[2 * n - 2 - 2 * b][2 * a] = "o";
+  grid[2 * n - 2 - 2 * d][2 * c2] = "o";
+}
+grid.map((r) => r.join("")).join("\n")
+```
+
+---
+
+Page: https://ratmath.com/chaos/cellular-automata.html
+
+Topic
+
+## Cellular automata
+
+Cells that are 0 or 1, updated by a local rule: the discrete end of dynamics, where everything is exact and yet rule 30 looks random and Life can compute anything.
+
+```js
+elementary(90).fromCell(15);                // rows of Pascal's triangle mod 2
+elementary(110).equivalents;                 // [110, 124, 137, 193]
+elementary(184).cycle("10101010");           // { transient: 0, period: 2 }
+life(patterns.glider).classify();            // { kind: "spaceship", period: 4, speed: "c/4", … }
+life("OOO\nO..\nO..", { rule: "B36/S23" }); // HighLife
+```
+
+### Elementary rules
+
+A row of cells, each new cell determined by itself and its two neighbours. There are 23=8 neighbourhoods and so 28=256 rules, numbered by Wolfram: bit n of the rule number is the new cell for the neighbourhood whose binary value is n. Reflecting left and right, or swapping 0 and 1, turns one rule into another that behaves the same way, which cuts 256 rules to 88 classes; `equivalents` lists a rule's class.
+
+Rule 90 is additive: the new cell is the sum mod 2 of the two neighbours. From one live cell, row t is then the binomial coefficients (kt​) mod 2, which is Sierpinski's triangle again, and by Lucas's theorem (kt​) is odd exactly when the binary digits of k are a subset of those of t. `additive` tests the linearity condition directly and finds exactly the eight rules 0, 60, 90, 102, 150, 170, 204, 240.
+
+On a ring of n cells there are 2n rows, so every orbit eventually repeats; `cycle` finds when and with what period. Rule 30 from one cell looks random enough that its centre column was used as a random number generator, and rule 110 was proved capable of universal computation.
+
+### Life
+
+Conway's Game of Life on the unbounded plane: a dead cell with exactly 3 live neighbours is born, a live one with 2 or 3 survives. Other rules are written the same way, as "B3/S23". Only live cells are stored, so a glider can travel forever.
+
+`classify` runs a pattern and compares each generation's shape, moved to the origin, with all earlier ones, cell by cell. A repeat in the same place is a still life or an oscillator with that period; a repeat that has moved is a spaceship, with its speed in cells per generation as a fraction of c, the speed of light (one cell per step). The glider moves one cell diagonally every 4 generations, c/4; the lightweight spaceship moves 2 cells in 4, c/2. Patterns that grow forever, like the Gosper glider gun, never repeat and come back as "unknown" within the limit.
+
+| call | returns |
+
+| elementary(rule) | Elementary: table, mirror, complement, equivalents, additive |
+
+| step(row, { boundary }), run(initial, steps), fromCell(steps) | Uint8Array rows |
+
+| cycle(initial, { limit }) | { transient, period } |
+
+| showRows(rows, on, off) | Rows as text |
+
+| life(cells, { rule }) | Life: population, step(), run(n), bounds(), classify(), toString() |
+
+| patterns | block, blinker, toad, beacon, glider, lwss, pulsar, rpentomino, gosperGun |
+
+### Try it
+
+```js
+PRINT(showRows(elementary(90).fromCell(15)));
+PRINT("");
+PRINT(showRows(elementary(30).fromCell(15)));
+PRINT("rule 30 is equivalent to", elementary(30).equivalents.join(", "));
+PRINT("additive rules:", Array.from({ length: 256 }, (_, r) => r).filter((r) => elementary(r).additive).join(", "));
+for (const name of ["block", "blinker", "pulsar", "glider", "lwss"]) {
+  const c = life(patterns[name]).classify();
+  PRINT(name.padEnd(8), c.kind, c.period ?? "", c.speed ?? "");
+}
+const r = life(patterns.rpentomino);
+PRINT("R-pentomino: population after 100 generations", r.run(100).population);
+life(patterns.glider).run(4).toString()
+```
+
+---
+
+Page: https://ratmath.com/chaos/mandelbrot-and-julia.html
+
+Topic
+
+## Mandelbrot and Julia sets
+
+A pixel is a small square of the plane, not a point. Here every pixel of a Mandelbrot or Julia picture is proved to lie outside the set, proved to lie inside it, or left undecided, and only the boundary is ever undecided.
+
+```js
+mandelbrot({ re: ["-2", "1/2"], im: ["-5/4", "5/4"], width: 72, height: 30 });
+julia("-1", { re: ["-2", "2"], im: ["-1", "1"] });   // the basilica
+mandelbrotPoint("-13/10");                   // { verdict: "inside", period: 4, … }
+juliaPoint("-1", "1/2");                     // an exact z₀ under z → z² − 1
+```
+
+### The sets
+
+For fc​(z)=z2+c, the filled Julia set Kc​ is the set of z whose orbit stays bounded, and the Mandelbrot set M is the set of c for which the orbit of 0 stays bounded. Both are compact, and the usual pictures colour a point by how many steps its float orbit takes to pass 2. That is a heuristic twice over: the point stands for a whole pixel, and the float orbit is not the true orbit.
+
+### Outside, proved
+
+If ∣z∣>max(2,∣c∣) then ∣fc​(z)∣>∣z∣, and the orbit goes to infinity. The library carries the whole pixel as a box of complex numbers in interval arithmetic, with every float result moved outward by more than its rounding error, so if some iterate of the box lies entirely beyond the radius, every point of the pixel escapes.
+
+### Inside, proved
+
+Being inside is harder, because no finite number of steps shows that an orbit stays bounded forever. Two tests prove it here. For M, the main cardioid q(q+x−41​)<4y2​ with q=(x−41​)2+y2, and the disc (x+1)2+y2<161​, contain exactly the c with an attracting fixed point or 2-cycle; the inequalities are checked on the whole pixel. Otherwise the library looks for a trap: a box B around the orbit's current position with fp(B)⊂B in intervals. Then every later iterate stays in B, so the orbit is bounded, and B holds an attracting cycle of period dividing p. A pixel that cannot be decided whole is split into 4, then 16 pieces (`depth`).
+
+For Julia sets the trap is built around the attracting cycle (found in floats, then proved by the trap itself). If fc​ has no attracting cycle, as for c outside M, nothing can be inside and nothing is claimed.
+
+### Single points, exactly
+
+`mandelbrotPoint(c)` and `juliaPoint(c, z0)` do the same for one exact point with the complex package's rational rectangles, rounded outward to a chosen number of bits. Points on the boundary, such as c=41​, −43​ or −2, stay undecided, which is the honest answer: they are in M, but no escape or trap argument shows it.
+
+| call | returns |
+
+| mandelbrot({ re, im, width, height, maxIter, maxPeriod, depth }) | PixelGrid: kind (0 undecided, 1 inside, 2 outside), counts, escape, toText() |
+
+| julia(c, { re, im, width, height, maxIter, depth }) | PixelGrid, with the cycle it trapped |
+
+| mandelbrotPoint(c, { maxIter, bits, maxPeriod }) | { verdict, reason, period? or escape? } |
+
+| juliaPoint(c, z0, { … }) | The same for a point of the plane |
+
+### Try it
+
+```js
+const M = mandelbrot({ width: 60, height: 24, maxIter: 120 });
+PRINT(M.toText("?█ "));
+PRINT(String(M));
+for (const c of ["0", "-1", "-13/10", "-0.12 + 0.75i", "1/2", "1/4", "-2"]) {
+  const v = mandelbrotPoint(c, { maxIter: 300 });
+  PRINT(c.padEnd(14), v.verdict.padEnd(10), v.reason);
+}
+const J = julia("-1", { width: 60, height: 16, re: ["-2", "2"], im: ["-1", "1"] });
+PRINT(J.toText("?█ "));
+String(J)
+```
+
+---
+
+Page: https://ratmath.com/chaos/newton-basins.html
+
+Topic
+
+## Newton basins
+
+Newton's method for z³ − 1 sends almost every starting point to one of the three cube roots of 1, but the boundaries between the three basins are fractal: at every point of the boundary all three basins meet.
+
+```js
+newtonBasins(["1", "0", "0", "-1"]);        // z³ − 1: three labelled basins
+newtonBasins(["1", "0", "-1"], { width: 40, height: 20 });   // z² − 1: two half-planes
+newtonBasins(["1", "0", "1", "0", "-1"]);   // z⁴ + z² − 1, coefficients highest first
+```
+
+### Newton's map
+
+For a polynomial p, Newton's method iterates N(z)=z−p(z)/p′(z). Near a simple root it converges quadratically, but far from the roots the behaviour is a dynamical system in its own right. Cayley asked in 1879 which root a starting point goes to; for z2−1 the answer is the nearer one, and for z3−1 the boundary of each basin is the boundary of all three, a Julia set of the rational map N.
+
+### What is proved
+
+For each root the library builds a small box B around a float approximation and checks, in interval arithmetic, that N(B)⊂B. By Brouwer's theorem N then has a fixed point in B, which is a root of p, and since B is small enough that ∣N′∣<1 there, every point of B goes to that root. The image is computed with the mean-value form
+
+N(Z)⊆N(m)+N′(Z)(Z−m),N′=(p′)2pp′′​,
+where m is the centre of the box; evaluating N directly on a box loses too much to the dependency problem. A pixel gets label k when its interval Newton orbit enters the k-th proved box, so every point of the pixel converges to root k. Pixels are split up to `depth` times when the whole cannot be followed. Boundary pixels, and pixels near a critical point of p where p′ vanishes, stay undecided.
+
+Coefficients are exact (complex ones written `"1/2 + 3i"`). A root that could not be proved, a multiple root for instance, is listed under `unproved` and its basin is not labelled.
+
+| call | returns |
+
+| newtonBasins(coefficients, { re, im, width, height, maxIter, depth }) | PixelGrid: kind (0 undecided, k for root k), roots (with their proved boxes), unproved, counts |
+
+### Try it
+
+```js
+const G = newtonBasins(["1", "0", "0", "-1"], { width: 60, height: 24, re: ["-2", "2"], im: ["-3/2", "3/2"] });
+PRINT(G.toText("?abc"));
+PRINT(String(G));
+G.roots.forEach((r, k) => PRINT(`root ${k + 1} (${"abc"[k]}): in [${r.re[0].toFixed(12)}, ${r.re[1].toFixed(12)}] + i[${r.im[0].toFixed(12)}, ${r.im[1].toFixed(12)}]`));
+const two = newtonBasins(["1", "0", "-1"], { width: 40, height: 8 });
+PRINT("z² − 1: roots", two.roots.map((r, k) => `${k + 1} near ${r.approx[0].toFixed(6)}`).join(", "));
+two.toText("?12")
+```

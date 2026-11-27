@@ -1,0 +1,94 @@
+# @ratmath/chaos
+
+> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. Part of the RatMath Shelf; numbers come from @ratmath/core (a peer dependency). ESM: `import * as chaos from "@ratmath/chaos"`.
+
+Built from 0.3.0, commit 82991bf. `file:line` is relative to the package root (also node_modules/@ratmath/chaos/); on GitHub: https://github.com/ratmath/chaos/blob/82991bf/<file>#L<line>. Docs pages are under https://ratmath.com/chaos/. Full types: index.d.ts.
+
+Types: `type Exact = Rational | bigint | number | string`; `type Stability = "attracting" | "repelling" | "neutral" | "superattracting" | "undecided"`; `type Point = [Rational, Rational]`; `type Range = [Exact, Exact]`; `type PlaneStability = "attracting" | "repelling" | "saddle" | "elliptic" | "undecided"`; `type PlanePoint = [Exact | RationalInterval, Exact | RationalInterval]`; `type PlaneRegion = Record<string, [Exact, Exact]>`; `type FlowValue = Exact | RationalInterval | [Exact, Exact]`; `type FlowPoint = FlowValue[] | Record<string, FlowValue>`; `type SectionPoint = Record<string, FlowValue | number> | Array<FlowValue | number>`
+
+## Docs
+
+- https://ratmath.com/chaos/llms-full.txt: every page below as Markdown, each with a runnable example
+- Pages: index (Overview), reference (Reference), explore (Explore), orbits (Orbits, true and floating), periodic-points (Periodic points and stability), lyapunov (Lyapunov exponents and sensitivity), bifurcations (Period doubling and windows), symbolic-dynamics (Symbolic dynamics), plane-maps (Maps of the plane), cat-map-and-horseshoe (The cat map and the horseshoe), flows (Flows, enclosed), periodic-orbits (Sections and periodic orbits), equilibria (Equilibria and their bifurcations), iterated-function-systems (Iterated function systems), cantor-sets (Cantor sets and dimension), l-systems (L-systems), cellular-automata (Cellular automata), mandelbrot-and-julia (Mandelbrot and Julia sets), newton-basins (Newton basins)
+
+## API
+
+name(params) → result — meaning · file:line · docs page
+
+- `plan: readonly PlannedPhase[]` · src/plan.js:5
+- `ChaosError class: code` · src/tree.js:8
+- `IteratedMap class: text, variable, params, with, at, float, enclose, derivativeAt, orbit, floatOrbit, enclosedOrbit, compare, cobweb, iterate, periodicPoints, fixedPoints, cycles, periodicPointsIn, criticalPoints, toString` · src/map.js:15 · reference
+- `map(formula: string, options?: MapOptions) → IteratedMap` — A map of the line from a formula: map("r*x*(1 - x)", { params: { r: 4 } }). · src/map.js:305 · orbits
+- `logistic(r?: Exact) → IteratedMap` — The logistic map x → r·x·(1 − x). · src/map.js:307 · orbits
+- `tent(mu?: Exact) → IteratedMap` — The tent map x → μ·(1/2 − |x − 1/2|), which is μ·x up to 1/2 and μ·(1 − x) after. · src/map.js:309
+- `quadratic(c?: Exact) → IteratedMap` — The quadratic family x → x² + c. · src/map.js:311
+- `doubling(x0: Exact, options?: { base?: Exact; limit?: number }) → { orbit: Rational[]; preperiod: number; period: number; cycle: Rational[]; floatReachesZeroAt: number | null }` — The doubling map x → 2x mod 1 on [0, 1), done exactly. · src/map.js:318 · orbits
+- `PlaneMap class: text, variables, params, determinant, areaPreserving, with, at, float, enclose, jacobian, orbit, floatOrbit, enclosedOrbit, compare, fixedPoints, cycles, exactPeriodicPoints, toString` · src/plane.js:134
+- `planeMap(field: [string, string], options?: PlaneMapOptions) → PlaneMap` — A map of the plane from two formulas. · src/plane.js:496 · plane-maps
+- `henon(a?: Exact, b?: Exact) → PlaneMap` — The Hénon map (x, y) → (1 − a·x² + y, b·x). · src/plane.js:498 · plane-maps
+- `standardMap(k?: Exact) → PlaneMap` — Chirikov's standard map, lifted to the plane: y → y + (k/2π)·sin(2πx), then x → x + y. · src/plane.js:504 · plane-maps
+- `TorusMap class: matrix, determinant, trace, invertible, hyperbolic, at, orbit, floatOrbit, period, periods, fixedPointCount, eigen, entropy, floatPartsAt, toString` · src/plane.js:513
+- `torusMap(matrix: Array<Array<number | bigint>>, options?: { name?: string }) → TorusMap` — A torus map from a 2 × 2 matrix of whole numbers. · src/plane.js:660 · cat-map-and-horseshoe
+- `catMap() → TorusMap` — Arnold's cat map (x, y) → (2x + y, x + y) mod 1. · src/plane.js:658 · cat-map-and-horseshoe
+- `Horseshoe class: at, itinerary, periodicPoint, periodicPoints, orbitCount, strips, dimension` — Smale's horseshoe in its piecewise linear form on the unit square: the square is squeezed to a third of its width, stretched to three times its height and… · src/plane.js:678
+- `horseshoe() → Horseshoe` — Smale's horseshoe on the unit square. · src/plane.js:764 · cat-map-and-horseshoe
+- `Flow class: n, text, variables, params, with, jacobian, velocity, solve, floatOrbit, equilibria, returnMap, periodicOrbit, bifurcations, toString` · src/flow.js:37
+- `flow(field: string[], options?: FlowOptions) → Flow` — A flow from formulas: flow(["y", "-x"], { variables: ["x", "y"] }). · src/flow.js:684 · flows
+- `lorenz(s?: Exact, r?: Exact, b?: Exact) → Flow` — The Lorenz system. · src/flow.js:686 · flows
+- `rossler(a?: Exact, b?: Exact, c?: Exact) → Flow` — The Rössler system. · src/flow.js:688 · flows
+- `vanDerPol(mu?: Exact) → Flow` — Van der Pol's oscillator x″ − μ(1 − x²)x′ + x = 0, as x′ = y, y′ = μ(1 − x²)y − x. · src/flow.js:690 · flows
+- `pendulum(damping?: Exact) → Flow` — The pendulum θ″ + c·θ′ + sin θ = 0, as x′ = y, y′ = −sin x − c·y. · src/flow.js:692 · flows
+- `lyapunov(map: IteratedMap, x0: Exact, options?: { steps?: number; transient?: number; digits?: number }) → { value: RationalInterval; steps: number; transient: number; bits: number; kind: string; float: number }` — The Lyapunov exponent of the orbit of x₀ over n steps, (1/n)·Σ log|f′(xᵢ)|, as a certified enclosure: the average is taken along the true orbit, not a… · src/dynamics.js:25 · lyapunov
+- `sensitivity(map: IteratedMap, x0: Exact, delta: Exact, options?: { steps?: number; threshold?: Exact; digits?: number }) → { rows: Array<{ n: number; separation: RationalInterval }>; reaches: number | null; rate: number | null …` — Sensitive dependence, measured on true orbits: two starting points a distance `delta` apart, followed together. rows { n, separation } with the separation… · src/dynamics.js:58 · lyapunov
+- `bifurcationDiagram(family: IteratedMap, options: { parameter: string; range: [Exact, Exact]; count?: number; start?: number; transient?: number; keep?: number }) → { kind: "estimated"; parameter: string; columns: Array<{ parameter: …` — The data of a bifurcation diagram: for each parameter value, the points the orbit visits after a transient. · src/dynamics.js:84 · bifurcations
+- `bifurcationPoint(family: IteratedMap, options: { parameter: string; period?: number; multiplier?: 1 | -1; near: [Exact, Exact]; digits?: number }) → Bifurcation` — A parameter value at which a cycle of period n has multiplier exactly `multiplier` (−1: the cycle is about to double its period; +1: a cycle is born in a… · src/dynamics.js:158 · bifurcations
+- `superstable(family: IteratedMap, options: { parameter: string; period: number; range: [Exact, Exact]; critical?: Exact; digits?: number }) → RationalInterval[]` — Parameters in `range` at which the critical point lies on a cycle of period n (superstable cycles), each a certified enclosure. · src/dynamics.js:263 · bifurcations
+- `periodDoubling(family: IteratedMap, options: { parameter: string; levels?: number; start: [Exact, Exact]; digits?: number }) → { points: Bifurcation[]; parameters: RationalInterval[]; ratios: RationalInterval[]; feigenbaum: string …` — The period-doubling cascade of a family: the parameters at which the cycle of period 1, 2, 4, … doubles, each proven by bifurcationPoint, and the ratios of… · src/dynamics.js:298 · bifurcations
+- `periodicWindow(family: IteratedMap, options: { parameter: string; period: number; near: [Exact, Exact]; digits?: number }) → { period: number; born: RationalInterval; doubles: RationalInterval; superstable: RationalInterval | null …` — A periodic window: the stretch of parameters in which an attracting cycle of period n exists, from its birth in a tangent bifurcation (multiplier +1) to its… · src/dynamics.js:354 · bifurcations
+- `itinerary(map: IteratedMap, x0: Exact, n: number, options?: { critical?: Exact }) → string` — The itinerary of x₀: L, C or R for each of the first n points of its orbit according to which side of the critical point c it lies on. · src/dynamics.js:377 · symbolic-dynamics
+- `kneading(map: IteratedMap, n: number, options?: { critical?: Exact }) → string` — The kneading sequence: the itinerary of the critical value f(c). · src/dynamics.js:410 · symbolic-dynamics
+- `sharkovskii: { compare(a: number, b: number): number; forces(a: number, b: number): boolean; forced(n: number, limit?: number): number[]; order(limit?: number): number[]; }` — Sharkovskii's order 3 ▷ 5 ▷ 7 ▷ … ▷ 2·3 ▷ 2·5 ▷ … ▷ 4·3 ▷ … ▷ 8 ▷ 4 ▷ 2 ▷ 1. sharkovskii.compare(a, b) is negative when a comes first; a continuous map of… · src/dynamics.js:433 · symbolic-dynamics
+- `Affine class: a, b, c, d, e, f, similarity, det, apply, applyFloat, similarityRatio, lipschitzBound` — An affine map of the plane with rational coefficients: (x, y) → (a x + b y + e, c x + d y + f) · src/fractals.js:56 · iterated-function-systems
+- `IFS class: maps, name, probabilities, contraction, step, stage, fixedPoint, chaosGame, similarityDimension` — An iterated function system: a finite list of contracting affine maps of the plane with rational coefficients. · src/fractals.js:117 · iterated-function-systems
+- `attractors: Readonly<Record<"sierpinski" | "carpet" | "vicsek" | "cantorDust" | "heighway" | "levyDragon" | "barnsley", () => IFS>>` — The famous attractors, with exact maps. sierpinski() three maps of ratio 1/2: dimension log 3/log 2 carpet() eight maps of ratio 1/3: log 8/log 3 vicsek()… · src/fractals.js:301 · iterated-function-systems
+- `moran(ratios: Exact[], options?: { bits?: number; squared?: boolean }) → Dimension` — Solve Σ rᵢ^s = 1 for s. · src/fractals.js:202 · iterated-function-systems
+- `DigitCantor class: base, digits, contains, expansion, stage, measure, dimension` — The set of numbers in [0, 1] that have a base-b expansion using only the given digits. cantor() is the middle-thirds set: base 3, digits 0 and 2.… · src/fractals.js:336
+- `cantor(options?: { base?: number; digits?: number[] }) → DigitCantor` · src/fractals.js:439 · cantor-sets
+- `boxCounting(points: { points: Float64Array } | Array<[number, number]>, options?: { scales?: number[]; bounds?: [number, number, number, number] | null }) → { kind: "estimated"; dimension: number; rows: Array<{ k: number; boxes: …` — The box-counting dimension, estimated: count the boxes of side 2^-k that the points meet, for each k, and fit a line to log(count) against k·log 2. · src/fractals.js:449 · iterated-function-systems
+- `seeded(seed?: number) → () => number` — A small seeded generator (mulberry32), so a chaos game can be repeated. · src/fractals.js:41
+- `LSystem class: axiom, rules, angle, name, generate, counts, turtle` · src/lsystem.js:46
+- `lsystem(spec: LSystemSpec) → LSystem` · src/lsystem.js:154 · l-systems
+- `lsystems: Readonly<Record<"koch" | "snowflake" | "arrowhead" | "dragon" | "hilbert" | "levy" | "plant", () => LSystem>>` — Classic L-systems. · src/lsystem.js:157 · l-systems
+- `Q3 class: a, b, add, mul, equals, toNumber, toString` — Numbers a + b√3 with rational a, b. · src/lsystem.js:12 · l-systems
+- `Elementary class: rule, table, mirror, complement, equivalents, additive, step, run, fromCell, cycle, toString` · src/automata.js:9
+- `elementary(rule: number) → Elementary` · src/automata.js:89 · cellular-automata
+- `showRows(rows: ArrayLike<number>[], on?: string, off?: string) → string` — Rows as text, one character per cell. · src/automata.js:91
+- `Life class: rule, cells, population, step, run, bounds, normalized, classify, toString` — A pattern on the unbounded plane: the set of live cells. · src/automata.js:104
+- `life(cells: string | Iterable<[number, number]>, options?: { rule?: string }) → Life` · src/automata.js:201 · cellular-automata
+- `patterns: Readonly<Record<"block" | "blinker" | "toad" | "beacon" | "glider" | "lwss" | "pulsar" | "rpentomino" | "gosperGun", string>>` — Patterns from the Life lexicon. · src/automata.js:204 · cellular-automata
+- `PixelGrid class: name, width, height, counts, labels, roots, unproved, re, reHigh, im, imHigh, at, toText, toString` — A classified grid of pixels. kind[i] is 0 (undecided), 1 (inside), 2 (outside); for Newton basins, k + 1 for root k. · src/escape.js:107
+- `mandelbrot(options?: PictureOptions & { maxPeriod?: number }) → PixelGrid` — The Mandelbrot set on a grid: c ranges over re × im, each pixel classified. mandelbrot({ re: ["-2", "1/2"], im: ["-5/4", "5/4"], width: 60, height: 30 })… · src/escape.js:181 · mandelbrot-and-julia
+- `julia(c: Exact, options?: PictureOptions) → PixelGrid` — The filled Julia set of z → z² + c for an exact c, on a grid of z. julia("-1", { re: ["-2", "2"], im: ["-1", "1"] }) Outside: an iterate is certainly beyond… · src/escape.js:271 · mandelbrot-and-julia
+- `newtonBasins(coefficients: Exact[], options?: PictureOptions) → PixelGrid` — Basins of attraction of Newton's method for a polynomial, given by its coefficients (highest first; exact, complex ones written "1/2 + 3i").… · src/escape.js:366 · newton-basins
+- `mandelbrotPoint(c: Exact, options?: { maxIter?: number; bits?: number; maxPeriod?: number }) → PointVerdict` — Is the exact point c in the Mandelbrot set? { verdict: "inside" | "outside" | "undecided", reason }. · src/escape.js:453 · mandelbrot-and-julia
+- `juliaPoint(c: Exact, z0: Exact, options?: { maxIter?: number; bits?: number; maxPeriod?: number }) → PointVerdict` — Is the exact point z0 in the filled Julia set of z → z² + c? { verdict: "inside" | "outside" | "undecided", reason } · src/escape.js:496 · mandelbrot-and-julia
+
+## Example
+
+```js
+import { logistic, henon, vanDerPol } from "@ratmath/chaos";
+const f = logistic(4);
+console.log("true orbit of 1/3:", f.orbit("1/3", 4).join(", "));
+const c = f.compare("1/10", 70);
+for (const n of [10, 30, 50, 52, 60, 70]) console.log(`step ${n}: float ${c.rows[n].float.toFixed(12)}  true ${c.rows[n].exact.low.toDecimal(12)}  correct digits ${c.rows[n].digits.toFixed(1)}`);
+console.log("the double has no correct digit from step", c.parted);
+console.log("period 2:", f.periodicPoints(2).map((p) => p.text).join(" and "));
+const vdp = vanDerPol(1).periodicOrbit({ variable: "y", value: 0, direction: -1 }, { x: 2 });
+console.log("Van der Pol's limit cycle, proven:", vdp.stability, "period", vdp.period.low.toDecimal(9));
+henon().periodicPoints(2, { x: [-2, 2], y: [-2, 2] }).map((p) => `(${p.point[0].low.toDecimal(8)}, ${p.point[1].low.toDecimal(8)}) ${p.stability}`)
+```
+
+## More
+
+- tests/: worked examples for every function
+- https://ratmath.com/core/ (numbers), https://ratmath.com/shelf/ (all the libraries)
