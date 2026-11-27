@@ -2,6 +2,9 @@
 
 ## 0.3.0
 
+- Types: the result of `Flow.bifurcations` is now
+  `EquilibriumBifurcation`. It was a second `Bifurcation` interface that
+  TypeScript merged with the map one and rejected as conflicting.
 - The `@ratmath/complex` range is now `^0.3.0` (was `^0.2.0`, which under 0.x
   rejects complex 0.3.0, so the package could not be installed from npm).
 - Phase 3, maps of the plane: `planeMap`, `henon`, `standardMap` with exact,
