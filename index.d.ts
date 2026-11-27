@@ -385,7 +385,7 @@ export interface ProvenOrbit {
   radius: number;
 }
 export interface UnprovenOrbit { proven: false; variables: string[]; point: number[]; reason: string }
-export interface Bifurcation {
+export interface EquilibriumBifurcation {
   /** The parameter value lies between these two. */
   parameter: [Rational, Rational];
   kind: "saddle-node" | "pitchfork" | "transcritical" | "Hopf" | "stability change" | "equilibria appear";
@@ -411,7 +411,7 @@ export class Flow {
   equilibria(region: Record<string, [Exact, Exact]>, options?: { tol?: number; maxBoxes?: number }): Equilibrium[] & { complete: boolean };
   returnMap(section: Section, start: SectionPoint, options?: SolverOptions & { returns?: number }): ReturnMapResult;
   periodicOrbit(section: Section, guess: SectionPoint, options?: SolverOptions & { returns?: number; radius?: Exact }): ProvenOrbit | UnprovenOrbit;
-  bifurcations(param: string, range: [Exact, Exact], region: Record<string, [Exact, Exact]>, options?: { samples?: number; tol?: Exact; maxBoxes?: number }): Bifurcation[];
+  bifurcations(param: string, range: [Exact, Exact], region: Record<string, [Exact, Exact]>, options?: { samples?: number; tol?: Exact; maxBoxes?: number }): EquilibriumBifurcation[];
   toString(): string;
 }
 export function flow(field: string[], options?: FlowOptions): Flow;

@@ -7,7 +7,7 @@
       "dependencies": {
         "@ratmath/algebraic": "^0.1.0",
         "@ratmath/analytic": "^0.1.0",
-        "@ratmath/complex": "^0.2.0",
+        "@ratmath/complex": "^0.3.0",
       },
       "devDependencies": {
         "@ratmath/core": "^0.11.0",
@@ -41,7 +41,7 @@
     },
     "vendor/complex": {
       "name": "@ratmath/complex",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "@ratmath/analytic": "^0.1.0",
       },
@@ -61,7 +61,7 @@
 
     "@ratmath/complex": ["@ratmath/complex@workspace:vendor/complex"],
 
-    "@ratmath/core": ["@ratmath/core@0.11.0", "", {}, "sha512-MqYSFSe1M893+gsG4MJzwBRlriHl4Xa4USzX/KCfkyAufCVqeA9f7QUN0H/sefZ1t9jid6VdniBenVCz0/5fiA=="],
+    "@ratmath/core": ["@ratmath/core@0.11.1", "", {}, "sha512-kzl0K+pY7cjZ+AAw5dl0rbUKhRw6vP0HjZEN3GiYWKYoFgk3Qw4DBkm8cfmlNtioAN2R/MiOgrF6CHSor155jw=="],
 
     "commander": ["commander@15.1.0", "", {}, "sha512-cgnQ88TRrWcC7pVq46RzJVRMktu3W2RcbnoidnfBsl1bmDCBwJS/udcIZpKoCrbAYYaCqsz1yZCVIgbIaU3ddQ=="],
 
