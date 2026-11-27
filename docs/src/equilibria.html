@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Equilibria and their bifurcations · RatMath Chaos</title>
+<meta name="description" content="Equilibria of flows proven and classified by the eigenvalues of the linearisation, and their bifurcations (saddle-node, pitchfork, transcritical, Hopf) bracketed in a parameter, in @ratmath/chaos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Equilibria and their bifurcations</h1>
+<p class="lede">An equilibrium is a point where the field vanishes. Which ones exist, and whether they attract, is the skeleton of a flow, and the parameter values at which that skeleton changes are its bifurcations.</p>
+<pre><code>const L = lorenz();
+const box = { x: [-30, 30], y: [-30, 30], z: [-10, 60] };
+L.equilibria(box).map((e) =&gt; e.kind);          // ["saddle-focus", "saddle", "saddle-focus"], proven to be all
+L.bifurcations("r", ["1/2", 30], box);
+// a pitchfork with r between 0.99999989 and 1.00000056,
+// a Hopf bifurcation with r between 24.73684178 and 24.73684237   (470/19 = 24.7368421…)</code></pre>
+<h2>Finding every equilibrium</h2>
+<p><code>equilibria(region)</code> solves \(f(x) = 0\) in a box, with a range for each variable. As for <a href="plane-maps.html">periodic points of maps</a>, the box is subdivided; a piece is discarded when interval arithmetic shows that \(f\) cannot vanish on it, and kept when Krawczyk's test proves that it holds exactly one zero. The list's <code>complete</code> says that everything else was discarded, so the list is all of them.</p>
+<p>Each equilibrium comes with the eigenvalues of the Jacobian there, as enclosures, and a <code>kind</code> read from the signs of their real parts:</p>
+<ul>
+<li><code>sink</code> or <code>spiral sink</code>: all real parts negative; nearby orbits come in (spiralling when there is a complex pair). <code>stability: "stable"</code>.</li>
+<li><code>source</code> or <code>spiral source</code>: all positive.</li>
+<li><code>saddle</code> or <code>saddle-focus</code>: some of each; <code>unstableDimension</code> counts the positive ones.</li>
+<li><code>undecided</code>: an enclosure of a real part contains 0. The linearisation does not decide stability there, and the library does not guess.</li>
+</ul>
+<p>That the linearisation does decide in the other cases is the Hartman–Grobman theorem: near an equilibrium with no eigenvalue on the imaginary axis, the flow looks like its linear part.</p>
+
+<h2>Bifurcations</h2>
+<p>As a parameter moves, equilibria move with it, and at special values they are created, destroyed or change stability. Each of these needs an eigenvalue to cross the imaginary axis:</p>
+<ul>
+<li><strong>Saddle-node</strong> (fold): two equilibria, one more stable than the other, collide and vanish. Normal form \(x' = \mu - x^2\).</li>
+<li><strong>Pitchfork</strong>: one equilibrium changes stability and throws off two new ones. Normal form \(x' = \mu x - x^3\); it needs a symmetry.</li>
+<li><strong>Transcritical</strong>: two equilibria pass through each other and exchange stability. Normal form \(x' = \mu x - x^2\).</li>
+<li><strong>Hopf</strong>: a complex pair crosses the axis; a spiral sink becomes a spiral source, and a periodic orbit is born or dies there.</li>
+</ul>
+<p><code>bifurcations(param, [from, to], region)</code> samples the parameter range, and at each sample proves and classifies all the equilibria. Where two neighbouring samples differ, in number or in stability after the equilibria have been paired by position, the bracket is halved, again and again, until it is narrower than <code>tol</code> (one millionth by default). The kind is read from what changed. What is certified is the two ends: at <code>parameter[0]</code> the equilibria are exactly as listed under <code>before</code>, and at <code>parameter[1]</code> as under <code>after</code>. Close to a bifurcation the proofs get harder, because that is where the Jacobian stops being invertible; if they stop succeeding before the bracket is narrow enough, the result has <code>stalled: true</code> and the wider bracket.</p>
+
+<h2>The Lorenz system, as r grows</h2>
+<p>For \(r &lt; 1\) the origin is the only equilibrium and it attracts everything: no convection. At \(r = 1\) a pitchfork: the origin becomes a saddle and two new sinks appear at \(x = y = \pm\sqrt{b(r-1)}\), convection rolls turning one way or the other. They are stable until</p>
+\[ r = \frac{s(s + b + 3)}{s - b - 1} = \frac{470}{19} \approx 24.7368, \]
+<p>where a Hopf bifurcation makes both unstable. Beyond it no equilibrium attracts, and at \(r = 28\) the orbits wander on the strange attractor for ever. The search finds both bifurcations without being told the formula.</p>
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>F.equilibria(region, { tol, maxBoxes })</td><td>[{ point, eigenvalues, kind, stability, unstableDimension, spiral }] with .complete</td></tr>
+<tr><td>F.bifurcations(param, [from, to], region, { samples = 24, tol })</td><td>[{ parameter: [lo, hi], kind, before, after, stalled }]</td></tr>
+</table></div>
+<template data-runbox>
+const show = (iv, n = 8) =&gt; iv.low.toDecimal(n);
+const L = lorenz();
+const box = { x: [-30, 30], y: [-30, 30], z: [-10, 60] };
+const eq = L.equilibria(box);
+PRINT("Lorenz at r = 28:", eq.length, "equilibria, complete:", eq.complete);
+for (const e of eq) PRINT(`  (${e.point.map((x) =&gt; show(x, 6)).join(", ")})  ${e.kind}, eigenvalues ${e.eigenvalues.map((v) =&gt; v.re.low.toDecimal(4) + (v.im.high.toNumber() &gt; 0 ? " + " + v.im.low.toDecimal(4) + "i" : v.im.low.toNumber() &lt; 0 ? " − " + v.im.high.negate().toDecimal(4) + "i" : "")).join(", ")}`);
+for (const b of L.bifurcations("r", ["1/2", 30], box)) PRINT(`  ${b.kind} for r between ${b.parameter[0].toDecimal(8)} and ${b.parameter[1].toDecimal(8)}: ${b.before.join(", ")} → ${b.after.join(", ")}`);
+PRINT("470/19 =", (470 / 19).toFixed(8));
+const one = (f) =&gt; flow([f], { params: { mu: 0 } }).bifurcations("mu", [-1, 1], { x: [-3, 3] })[0];
+for (const f of ["mu - x^2", "mu*x - x^3", "mu*x - x^2"]) {
+  const b = one(f);
+  PRINT(`x′ = ${f}: ${b.kind} with μ in [${b.parameter[0].toNumber().toExponential(1)}, ${b.parameter[1].toNumber().toExponential(1)}]`);
+}
+const h = vanDerPol(0).bifurcations("mu", [-1, 1], { x: [-3, 3], y: [-3, 3] })[0];
+PRINT(`Van der Pol: ${h.kind} at μ = 0: ${h.before} → ${h.after}`);
+pendulum("1/2").equilibria({ x: [-4, 4], y: [-1, 1] }).map((e) =&gt; `${e.kind} at x = ${show(e.point[0], 10)}`)
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

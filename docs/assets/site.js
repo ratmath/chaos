@@ -1,8 +1,8 @@
 // Shared page furniture for the chaos docs: the contents column, the theme
 // switch and the code boxes. Add each topic page to PAGES as it is written.
 
-import * as A from "./chaos.js?v=c2fcc9e685";
-import { mountRunboxes } from "./runbox.js?v=c2fcc9e685";
+import * as A from "./chaos.js?v=64becaf517";
+import { mountRunboxes } from "./runbox.js?v=64becaf517";
 
 export { A };
 
@@ -16,6 +16,13 @@ export const PAGES = [
   { href: "lyapunov.html", title: "Lyapunov exponents and sensitivity", blurb: "Certified averages along true orbits; separation measured" },
   { href: "bifurcations.html", title: "Period doubling and windows", blurb: "Bifurcation parameters proven; Feigenbaum's ratios" },
   { href: "symbolic-dynamics.html", title: "Symbolic dynamics", blurb: "Itineraries, kneading sequences, Sharkovskii's order" },
+  { group: "Maps of the plane" },
+  { href: "plane-maps.html", title: "Maps of the plane", blurb: "Hénon and standard maps: true orbits, periodic points proven, exact where algebra allows" },
+  { href: "cat-map-and-horseshoe.html", title: "The cat map and the horseshoe", blurb: "Chaos done exactly: periods on the torus, symbolic dynamics of Smale's horseshoe" },
+  { group: "Flows" },
+  { href: "flows.html", title: "Flows, enclosed", blurb: "Solutions of differential equations inside proven boxes; Lorenz, Rössler, Van der Pol" },
+  { href: "periodic-orbits.html", title: "Sections and periodic orbits", blurb: "Return maps with derivatives; closed orbits proven to exist, with period and multipliers" },
+  { href: "equilibria.html", title: "Equilibria and their bifurcations", blurb: "Every rest point in a box, classified; saddle-node, pitchfork and Hopf parameters bracketed" },
   { group: "Fractals and automata" },
   { href: "iterated-function-systems.html", title: "Iterated function systems", blurb: "Exact stages, contraction bounds, similarity dimensions, the chaos game" },
   { href: "cantor-sets.html", title: "Cantor sets and dimension", blurb: "Exact membership of fractions; stages, measure, dimension" },

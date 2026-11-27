@@ -1,16 +1,5 @@
-// What this package is planned to contain, phase by phase, from the RatMath
-// library roadmap. Phases 1, 2, 4 and 5 are built; a phase is removed from this list
-// when it ships, and the list goes away when it is empty.
+// What this package is still planned to contain, from the RatMath library
+// roadmap. Every phase is built (the pictures are in @ratmath/graphics), so
+// the list is empty; it stays so that programs that read it keep working.
 
-export const plan = Object.freeze([
-  {
-    "phase": 3,
-    "contents": "Maps of the plane; flows, sections, periodic orbits, bifurcations",
-    "estimate": "1,300"
-  },
-  {
-    "phase": 6,
-    "contents": "Pictures",
-    "estimate": "1,000 in graphics"
-  }
-].map(Object.freeze));
+export const plan = Object.freeze([]);

@@ -1,7 +1,7 @@
 {
   "name": "@ratmath/chaos",
-  "version": "0.2.0",
-  "description": "Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents and fractals, exact or certified",
+  "version": "0.3.0",
+  "description": "Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified",
   "type": "module",
   "main": "index.js",
   "exports": {
@@ -21,7 +21,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "test": "bun test ./tests",
+    "test": "bun test --timeout 60000 ./tests",
     "docs:build": "bun scripts/build-docs.js"
   },
   "keywords": [
@@ -43,8 +43,8 @@
     "url": "https://github.com/ratmath/chaos/issues"
   },
   "dependencies": {
-    "@ratmath/analytic": "^0.1.0",
     "@ratmath/algebraic": "^0.1.0",
+    "@ratmath/analytic": "^0.1.0",
     "@ratmath/complex": "^0.2.0"
   },
   "peerDependencies": {

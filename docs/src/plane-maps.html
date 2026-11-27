@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maps of the plane · RatMath Chaos</title>
+<meta name="description" content="Maps of the plane in @ratmath/chaos: exact and enclosed orbits of the Hénon map, periodic points proven to exist with their multipliers and directions, exact algebraic periodic points, the standard map.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Maps of the plane</h1>
+<p class="lede">A map of the plane takes a point \((x, y)\) to another. Two formulas are enough for folding, stretching and a strange attractor. Orbits come exact, enclosed or in doubles as on the line, and periodic points are proven to exist, each alone in a small box.</p>
+<pre><code>const H = henon();                        // (x, y) → (1 − 1.4x² + y, 0.3x)
+H.orbit([0, 0], 3);                       // (0, 0), (1, 0), (−2/5, 3/10), (269/250, −3/25): the true orbit
+H.compare([0, 0], 150).parted;            // 93: the step where doubles have no digit right
+H.fixedPoints({ x: [-2, 2], y: [-1, 1] });        // two, each proven, and proven to be all
+H.exactPeriodicPoints(1).map((p) =&gt; p.text);      // [["(−7 − √609)/28", …], ["(−7 + √609)/28", "(−21 + 3√609)/280"]]
+planeMap(["x/2 + y/4 + 1", "x/4 - y/3"]);         // any two formulas</code></pre>
+<h2>The Hénon map</h2>
+<p>Hénon's map is the simplest map of the plane with a strange attractor:</p>
+\[ H(x, y) = (1 - a x^2 + y,\; b x), \qquad a = 1.4,\ b = 0.3 . \]
+<p>It bends the plane (the \(x^2\) term), squeezes it (the Jacobian determinant is \(-b\) everywhere, so areas shrink by the factor 0.3 at every step) and flips it. <code>H.determinant</code> is that constant, found by expanding the determinant of the Jacobian symbolically, and <code>H.areaPreserving</code> is true when it is 1 or −1.</p>
+<p>A rational starting point has a rational orbit, and <code>orbit</code> gives it. The number of digits doubles at each step, so long orbits are enclosed instead: <code>enclosedOrbit(p, n)</code> adds working digits until the last point is known to the accuracy asked for. <code>compare</code> sets the double orbit beside the true one. From \((0, 0)\) the doubles lose their last correct digit at step 93: the error doubles about every 1.6 steps, which is the Lyapunov exponent at work.</p>
+
+<h2>Periodic points, proven</h2>
+<p>A point of period \(n\) is a solution of \(F^n(p) = p\), two equations in two unknowns. <code>periodicPoints(n, region)</code> searches a rectangle by subdivision. A box is thrown away when interval arithmetic shows that \(F^n(p) - p\) cannot vanish in it. A box is kept as a solution when <strong>Krawczyk's test</strong> succeeds: with \(G = F^n - \mathrm{id}\), \(m\) the centre of the box \(X\) and \(C\) an approximate inverse of \(DG(m)\), if</p>
+\[ K(X) = m - C\,G(m) + \bigl(I - C\,DG(X)\bigr)(X - m) \]
+<p>lies in the interior of \(X\), then \(G\) has exactly one zero in \(X\), and it lies in \(K(X)\). So every point in the list exists and is the only one in its enclosure, and when the list's <code>complete</code> is true, the rest of the rectangle was proven empty. For the classical parameters the search finds 2 fixed points, one orbit of period 2, one of period 4, two of period 6 and four of period 7, and none of period 3 or 5.</p>
+<p>Each point comes with the eigenvalues of \(DF^n\) there (its <strong>multipliers</strong>), as enclosures, and a verdict: <code>attracting</code> (both inside the unit circle), <code>repelling</code>, <code>saddle</code>, or <code>elliptic</code> for a complex pair of an area-preserving map. At a saddle, <code>unstable</code> and <code>stable</code> are the eigenvectors: the directions along which nearby points leave and arrive. The unstable direction at the fixed point on the attractor is the direction of the attractor's leaves there.</p>
+
+<h2>Periodic points, exact</h2>
+<p>For a polynomial map the equations are polynomial. When one of them is of first degree in one unknown, that unknown can be eliminated and the other is a root of a polynomial in one variable: an algebraic number. For the Hénon family this works for periods 1 and 2, and <code>exactPeriodicPoints(n)</code> returns the points in closed form:</p>
+\[ x = \frac{-(1-b) \pm \sqrt{(1-b)^2 + 4a}}{2a}, \qquad y = b x . \]
+<p>For higher periods neither equation is linear, and the method says so; the proven enclosures above remain.</p>
+
+<h2>Lyapunov exponents</h2>
+<p>A map of the plane has two exponents: the growth rate of a tangent vector, and of an area. <code>lyapunov(p, n)</code> estimates both in doubles, re-orthogonalising two tangent vectors at each step, and labels the result <code>kind: "estimated"</code>. One thing about them is exact: their sum is the average of \(\log|\det DF|\), and when the determinant is constant that is \(\log|b|\). The result's <code>sum</code> is an enclosure of it, and the two estimates can be checked against it.</p>
+
+<h2>The standard map</h2>
+<p>Chirikov's standard map models a kicked rotor,</p>
+\[ y' = y + \frac{k}{2\pi}\sin(2\pi x), \qquad x' = x + y' , \]
+<p>and keeps areas for every \(k\): its determinant comes out as exactly 1, with the sines and cosines treated as symbols. <code>standardMap(k)</code> is the map lifted to the plane (take \(x\) and \(y\) modulo 1 to draw it on the torus). It has no rational orbits, so orbits are enclosed. Its fixed point at the origin is a saddle and the one at \((\tfrac12, 0)\) is elliptic for \(0 &lt; k &lt; 4\): the centre of the island that the pictures show.</p>
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>planeMap([f, g], { variables, params })</td><td>PlaneMap</td></tr>
+<tr><td>henon(a = "1.4", b = "0.3"), standardMap(k = 1)</td><td>PlaneMap</td></tr>
+<tr><td>F.at(p), F.float(p), F.enclose(p)</td><td>the image: exact, in doubles, enclosed</td></tr>
+<tr><td>F.orbit(p, n), F.floatOrbit(p, n), F.enclosedOrbit(p, n, { digits })</td><td>orbits of the three kinds</td></tr>
+<tr><td>F.compare(p, n)</td><td>{ rows: [{ n, float, exact, error, digits }], parted }</td></tr>
+<tr><td>F.jacobian(), F.determinant, F.areaPreserving</td><td>formulas; a Rational or null; a boolean</td></tr>
+<tr><td>F.periodicPoints(n, region, { all })</td><td>[{ point, period, leastPeriod, multipliers, stability, stable, unstable }] with .complete</td></tr>
+<tr><td>F.fixedPoints(region), F.cycles(n, region)</td><td>the same for n = 1; points grouped into orbits</td></tr>
+<tr><td>F.exactPeriodicPoints(n)</td><td>[{ x, y, text, period, multipliers, stability }]</td></tr>
+<tr><td>F.lyapunov(p, n)</td><td>{ exponents, kind: "estimated", sum }</td></tr>
+</table></div>
+<template data-runbox>
+const H = henon();
+const show = (iv) =&gt; iv.low.toDecimal(10);
+PRINT("true orbit of (0, 0):", H.orbit([0, 0], 4).map((p) =&gt; `(${p.join(", ")})`).join("  "));
+PRINT("doubles have no correct digit from step", H.compare([0, 0], 150).parted);
+const region = { x: [-2, 2], y: [-1, 1] };
+for (const n of [1, 2, 3, 4, 5, 6, 7]) {
+  const pts = H.periodicPoints(n, region);
+  PRINT(`least period ${n}: ${pts.length} points, ${pts.length / n} orbits${pts.complete ? ", proven to be all" : ""}`);
+}
+const p = H.fixedPoints(region)[1];
+PRINT("fixed point on the attractor:", p.point.map(show).join(", "), " ", p.stability);
+PRINT("  multipliers", p.multipliers.map((e) =&gt; show(e.re)).join(" and "));
+PRINT("  unstable direction (1, " + show(p.unstable[1]) + "), stable direction (" + show(p.stable[0]) + ", 1)");
+PRINT("exactly:", H.exactPeriodicPoints(1)[1].text.join(", "));
+const l = H.lyapunov([0, 0], 20000);
+PRINT("exponents (estimated):", l.exponents.map((x) =&gt; x.toFixed(4)).join(", "), " sum", (l.exponents[0] + l.exponents[1]).toFixed(6));
+`log 0.3 = ${show(l.sum)}, the sum exactly`
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

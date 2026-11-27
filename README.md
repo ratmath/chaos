@@ -30,6 +30,8 @@ itinerary(f, "1/10", 12);                    // "LLRLRRRLLRLR"
 | Exponents | `lyapunov` (certified average along the true orbit), `sensitivity` |
 | Bifurcations | `bifurcationPoint`, `periodDoubling`, `periodicWindow`, `superstable` (all proven); `bifurcationDiagram` (estimated) |
 | Symbolic dynamics | `itinerary`, `kneading`, `sharkovskii` |
+| Maps of the plane | `planeMap`, `henon`, `standardMap`: exact, enclosed and float orbits; `.periodicPoints(n, region)` each proven and the list proven complete; `.exactPeriodicPoints(n)` as algebraic numbers; `catMap`, `torusMap` (exact periods, counts, entropy), `horseshoe` (symbolic dynamics in exact coordinates) |
+| Flows | `flow(field)`, `lorenz`, `rossler`, `vanDerPol`, `pendulum`: `.solve` encloses the true solution; `.returnMap` and `.periodicOrbit` prove closed orbits with period and multipliers; `.equilibria(region)` finds and classifies every rest point; `.bifurcations` brackets saddle-node, pitchfork, transcritical and Hopf parameters |
 | Fractals | `IFS`, `Affine`, `attractors` (exact stages, contraction bounds, similarity dimension exact or certified, chaos game estimated), `moran`, `boxCounting`; `cantor({ base, digits })` with exact membership of fractions |
 | L-systems | `lsystem`, `lsystems`: symbol counts by matrix power; turtle paths exact in a + b√3 at multiples of 30° |
 | Cellular automata | `elementary(rule)` (equivalents, additivity, cycles), `life(cells, { rule })` with `classify` (still life, oscillator, spaceship and speed) |
@@ -39,22 +41,18 @@ Three kinds of answer, each labelled: exact (rationals and algebraic numbers),
 certified (intervals proven to contain the value) and estimated (pictures and
 observed limits).
 
-## Still planned
-
-| Phase | Contents |
-|---|---|
-| 3 | Maps of the plane; flows, sections, periodic orbits, bifurcations |
-| 6 | Pictures |
-
-The plan is in the
-[library roadmap](https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos),
-and `plan` exports the list.
+Every phase of the
+[library roadmap](https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos)
+for this package is built; the pictures are in `@ratmath/graphics`.
 
 ## Layout
 
 - `index.js`, `src/`: the library (`tree.js` evaluators, `map.js` maps and
   periodic points, `dynamics.js` exponents, bifurcations and symbols,
-  `fractals.js`, `lsystem.js`, `automata.js`, `escape.js`).
+  `fractals.js`, `lsystem.js`, `automata.js`, `escape.js`, `plane.js` maps of
+  the plane, `fi.js` outward-rounded float intervals, Taylor series and
+  Krawczyk tests, `flow.js` the enclosing solver, sections, periodic orbits,
+  equilibria and bifurcations).
 - `vendor/analytic`, `vendor/algebraic`, `vendor/complex`: git submodules, used as workspaces
   until those packages are on npm. Clone with `--recurse-submodules`.
 - `tests/`: `bun run test`.

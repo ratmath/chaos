@@ -228,3 +228,198 @@ export function newtonBasins(coefficients: Exact[], options?: PictureOptions): P
 export interface PointVerdict { verdict: "inside" | "outside" | "undecided"; reason: string; period?: number; escape?: number }
 export function mandelbrotPoint(c: Exact, options?: { maxIter?: number; bits?: number; maxPeriod?: number }): PointVerdict;
 export function juliaPoint(c: Exact, z0: Exact, options?: { maxIter?: number; bits?: number; maxPeriod?: number }): PointVerdict;
+
+// ---- maps of the plane
+
+/** A complex number as two enclosures; im is [0, 0] for a real one. */
+export interface EnclosedComplex { re: RationalInterval; im: RationalInterval }
+export type PlaneStability = "attracting" | "repelling" | "saddle" | "elliptic" | "undecided";
+/** A point given by exact numbers, or by intervals for a box of points. */
+export type PlanePoint = [Exact | RationalInterval, Exact | RationalInterval];
+export interface Linearisation {
+  /** The eigenvalues of the derivative of Fⁿ at the point, or null when they could not be separated. */
+  multipliers: EnclosedComplex[] | null;
+  stability: PlaneStability;
+  /** At a saddle: the contracting direction, scaled so that one component is 1. */
+  stable: [RationalInterval, RationalInterval] | null;
+  /** At a saddle: the expanding direction. */
+  unstable: [RationalInterval, RationalInterval] | null;
+}
+export interface PlanePeriodicPoint extends Linearisation {
+  point: [RationalInterval, RationalInterval];
+  period: number;
+  /** The least period; null when a smaller one could not be ruled out or proven. */
+  leastPeriod: number | null;
+}
+export interface ExactPlanePoint extends Linearisation {
+  x: AlgebraicValue;
+  y: AlgebraicValue;
+  text: [string, string];
+  period: number;
+}
+export type PlaneRegion = Record<string, [Exact, Exact]>;
+export interface PlaneMapOptions { variables?: [string, string]; params?: Record<string, Exact>; name?: string }
+export class PlaneMap {
+  constructor(field: [string, string], options?: PlaneMapOptions);
+  readonly text: [string, string];
+  readonly variables: [string, string];
+  readonly params: Record<string, Rational>;
+  /** The Jacobian determinant when it is the same everywhere, else null. */
+  readonly determinant: Rational | null;
+  readonly areaPreserving: boolean;
+  with(params: Record<string, Exact>): PlaneMap;
+  at(p: [Exact, Exact]): [Rational, Rational];
+  float(p: [number, number]): [number, number];
+  enclose(p: PlanePoint, bits?: number): [RationalInterval, RationalInterval];
+  jacobian(): [[string, string], [string, string]];
+  orbit(p0: [Exact, Exact], n: number, options?: { maxBits?: number }): Array<[Rational, Rational]>;
+  floatOrbit(p0: [Exact, Exact], n: number): Array<[number, number]>;
+  enclosedOrbit(p0: PlanePoint, n: number, options?: { digits?: number; bits?: number; maxBits?: number }): { points: Array<[RationalInterval, RationalInterval]>; bits: number; width: Rational };
+  compare(p0: [Exact, Exact], n: number, options?: { digits?: number }): { rows: Array<{ n: number; float: [number, number]; exact: [RationalInterval, RationalInterval]; error: number; digits: number }>; parted: number | null };
+  /** Every point of period n in the region, each proven; `complete` says none was missed. */
+  periodicPoints(n: number, region: PlaneRegion, options?: { all?: boolean; tol?: number; maxBoxes?: number }): PlanePeriodicPoint[] & { complete: boolean };
+  fixedPoints(region: PlaneRegion, options?: { tol?: number; maxBoxes?: number }): PlanePeriodicPoint[] & { complete: boolean };
+  cycles(n: number, region: PlaneRegion, options?: { tol?: number; maxBoxes?: number }): Array<{ period: number; points: Array<[RationalInterval, RationalInterval]>; multipliers: EnclosedComplex[] | null; stability: PlaneStability; whole: boolean }> & { complete: boolean };
+  /** Points of period n as exact algebraic numbers, when one coordinate can be eliminated. */
+  exactPeriodicPoints(n?: number): ExactPlanePoint[];
+  /** Lyapunov exponents estimated in doubles; `sum` is an enclosure of their sum when the determinant is constant. */
+  lyapunov(p0: [Exact, Exact], n?: number, options?: { skip?: number }): { exponents: [number, number]; kind: "estimated"; steps: number; sum: RationalInterval | null };
+  toString(): string;
+}
+export function planeMap(field: [string, string], options?: PlaneMapOptions): PlaneMap;
+export function henon(a?: Exact, b?: Exact): PlaneMap;
+export function standardMap(k?: Exact): PlaneMap;
+
+export class TorusMap {
+  constructor(matrix?: Array<Array<number | bigint>>, options?: { name?: string });
+  readonly matrix: bigint[][];
+  readonly determinant: bigint;
+  readonly trace: bigint;
+  readonly invertible: boolean;
+  readonly hyperbolic: boolean;
+  at(p: [Exact, Exact]): [Rational, Rational];
+  orbit(p0: [Exact, Exact], n: number): Array<[Rational, Rational]>;
+  floatOrbit(p0: [Exact, Exact], n: number): Array<[number, number]>;
+  period(p0: [Exact, Exact], options?: { limit?: number }): { period: number; preperiod: number; cycle: Array<[Rational, Rational]> };
+  /** For every period, how many points with denominator q have it. */
+  periods(q: number): Map<number, number>;
+  fixedPointCount(n: number): bigint;
+  eigen(): Array<{ value: AlgebraicValue; text: string; direction: AlgebraicValue | null; directionText: string; expanding: boolean }>;
+  entropy(bits?: number): { text: string; value: RationalInterval };
+  floatPartsAt(p0: [Exact, Exact], options?: { limit?: number; tolerance?: number }): number | null;
+  toString(): string;
+}
+export function catMap(): TorusMap;
+export function torusMap(matrix: Array<Array<number | bigint>>, options?: { name?: string }): TorusMap;
+
+export class Horseshoe {
+  at(p: [Exact, Exact]): [Rational, Rational] | null;
+  itinerary(p: [Exact, Exact], n: number): string;
+  periodicPoint(word: string): [Rational, Rational];
+  periodicPoints(n: number): Array<{ word: string; point: [Rational, Rational]; leastPeriod: number }>;
+  orbitCount(n: number): number;
+  strips(n: number): { horizontal: Array<[Rational, Rational]>; vertical: Array<[Rational, Rational]> };
+  readonly dimension: { text: string; value: number };
+}
+export function horseshoe(): Horseshoe;
+
+// ---- flows
+
+/** A starting value: an exact number, or an interval for a box of starting points. */
+export type FlowValue = Exact | RationalInterval | [Exact, Exact];
+export type FlowPoint = FlowValue[] | Record<string, FlowValue>;
+export interface FlowOptions { variables?: string[]; params?: Record<string, Exact>; name?: string }
+export interface SolverOptions {
+  /** Degree of the Taylor polynomials (default 12). */
+  order?: number;
+  maxStep?: number;
+  maxSteps?: number;
+}
+export interface FlowSolution {
+  variables: string[];
+  /** Enclosures of the solution at the end time, one per variable. */
+  final: RationalInterval[];
+  /** False when the solver stopped early; `reason` says why and `reached` how far it got. */
+  complete: boolean;
+  reason: string | null;
+  reached: RationalInterval;
+  steps: number;
+  /** The widest of the final enclosures, as a double. */
+  width: number;
+  at(time: Exact): RationalInterval[];
+}
+export interface Equilibrium {
+  point: RationalInterval[];
+  eigenvalues: EnclosedComplex[] | null;
+  kind: "sink" | "spiral sink" | "source" | "spiral source" | "saddle" | "saddle-focus" | "undecided";
+  stability: "stable" | "unstable" | "undecided";
+  unstableDimension: number | null;
+  spiral: boolean;
+}
+export interface Section {
+  /** The section is the plane where this variable takes `value`. */
+  variable: string;
+  value?: Exact;
+  /** 1 or "up": crossed with the variable increasing; −1 or "down": decreasing. */
+  direction?: 1 | -1 | "up" | "down";
+}
+export type SectionPoint = Record<string, FlowValue | number> | Array<FlowValue | number>;
+export interface ReturnMapResult {
+  /** The section's coordinates: the variables other than the section's own. */
+  variables: string[];
+  point: RationalInterval[];
+  time: RationalInterval;
+  /** The derivative of the return map in the section's coordinates. */
+  derivative: RationalInterval[][];
+}
+export interface ProvenOrbit {
+  proven: true;
+  variables: string[];
+  /** A point of the orbit on the section, one enclosure per variable. */
+  point: RationalInterval[];
+  period: RationalInterval;
+  returns: number;
+  multipliers: EnclosedComplex[] | null;
+  stability: "attracting" | "repelling" | "saddle" | "undecided";
+  /** Half the side of the box in which the orbit is the only one. */
+  radius: number;
+}
+export interface UnprovenOrbit { proven: false; variables: string[]; point: number[]; reason: string }
+export interface Bifurcation {
+  /** The parameter value lies between these two. */
+  parameter: [Rational, Rational];
+  kind: "saddle-node" | "pitchfork" | "transcritical" | "Hopf" | "stability change" | "equilibria appear";
+  /** The kinds of the equilibria just before and just after. */
+  before: string[];
+  after: string[];
+  /** True when the bracket could not be narrowed to the tolerance. */
+  stalled: boolean;
+  tags: [string, string];
+}
+export class Flow {
+  constructor(field: string[], options?: FlowOptions);
+  readonly n: number;
+  readonly text: string[];
+  readonly variables: string[];
+  readonly params: Record<string, Rational>;
+  with(params: Record<string, Exact>): Flow;
+  jacobian(): string[][];
+  velocity(p: number[]): number[];
+  /** The solution through a point or a box of points, enclosed. */
+  solve(p0: FlowPoint, until: Exact, options?: SolverOptions): FlowSolution;
+  floatOrbit(p0: FlowPoint, until: Exact | number, options?: { steps?: number }): { t: number[]; points: number[][] };
+  equilibria(region: Record<string, [Exact, Exact]>, options?: { tol?: number; maxBoxes?: number }): Equilibrium[] & { complete: boolean };
+  returnMap(section: Section, start: SectionPoint, options?: SolverOptions & { returns?: number }): ReturnMapResult;
+  periodicOrbit(section: Section, guess: SectionPoint, options?: SolverOptions & { returns?: number; radius?: Exact }): ProvenOrbit | UnprovenOrbit;
+  bifurcations(param: string, range: [Exact, Exact], region: Record<string, [Exact, Exact]>, options?: { samples?: number; tol?: Exact; maxBoxes?: number }): Bifurcation[];
+  toString(): string;
+}
+export function flow(field: string[], options?: FlowOptions): Flow;
+/** The Lorenz system x′ = s(y − x), y′ = x(r − z) − y, z′ = xy − bz. */
+export function lorenz(s?: Exact, r?: Exact, b?: Exact): Flow;
+/** The Rössler system x′ = −y − z, y′ = x + ay, z′ = b + z(x − c). */
+export function rossler(a?: Exact, b?: Exact, c?: Exact): Flow;
+/** Van der Pol's oscillator x′ = y, y′ = μ(1 − x²)y − x. */
+export function vanDerPol(mu?: Exact): Flow;
+/** The pendulum x′ = y, y′ = −sin x − c·y. */
+export function pendulum(damping?: Exact): Flow;

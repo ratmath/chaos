@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="https://ratmath.com/assets/katex/0.19.1/katex.min.css">
-<link rel="stylesheet" href="assets/style.css?v=c2fcc9e685">
-<script type="module" src="assets/site.js?v=c2fcc9e685"></script>
+<link rel="stylesheet" href="assets/style.css?v=64becaf517">
+<script type="module" src="assets/site.js?v=64becaf517"></script>
 </head>
 <body>
 <div class="shell">
@@ -50,8 +50,9 @@ itinerary(f, "1/10", 12);                    // "LLRLRRRLLRLR"</code></pre>
 <h2>Fractals, automata and honest pixels</h2>
 <p>The same three kinds of answer carry over to pictures. An <a href="iterated-function-systems.html">iterated function system</a> with rational maps has exact stages and a dimension that is exact or certified; the chaos game that draws it is an estimate and says so. Whether a fraction lies in a <a href="cantor-sets.html">Cantor set</a> is decided exactly. <a href="l-systems.html">L-systems</a> count their symbols by matrix powers and draw at multiples of 30° in exact coordinates, and <a href="cellular-automata.html">cellular automata</a> are exact by nature. In a <a href="mandelbrot-and-julia.html">Mandelbrot or Julia picture</a> or a picture of <a href="newton-basins.html">Newton basins</a>, every pixel is proved outside, proved inside, or left undecided.</p>
 
-<h2>Still to come</h2>
-<p>Maps of the plane and flows, and pictures in graphics. The <code>plan</code> export lists the phases, from the <a href="https://github.com/ratmath/ratmath/blob/main/docs/design/library-roadmap.md#10-a-dynamical-systems-package-ratmathchaos">library roadmap</a>. The <a href="https://ratmath.com/shelf/">RatMath Shelf</a> page lists what exists across all the libraries.</p>
+<h2>The plane and flows</h2>
+<p>In two dimensions and for differential equations the exact answers mostly run out, and proof takes over. <a href="plane-maps.html">Periodic points of the Hénon map</a> are each proven to exist, alone in a small box, with a list that is proven complete; where a coordinate can be eliminated they are algebraic numbers again. The <a href="cat-map-and-horseshoe.html">cat map and the horseshoe</a> are exact throughout. A <a href="flows.html">flow</a> is solved inside boxes that are proven to hold the true solution, which is enough to prove that a <a href="periodic-orbits.html">periodic orbit</a> of the Lorenz system exists, with its period and multipliers, and to find and classify every <a href="equilibria.html">equilibrium</a> in a region and the parameters where they change. The numbers under these proofs are doubles rounded outward, so they are fast; the statements are still theorems.</p>
+<p>Pictures of all of this are in <a href="https://ratmath.com/graphics/">@ratmath/graphics</a>. The <a href="https://ratmath.com/shelf/">RatMath Shelf</a> page lists what exists across all the libraries.</p>
 <section class="runbox" aria-label="Runnable code">
   <div class="runbox-head"><strong>Try it</strong><span>Edit the code and run it with <code>@ratmath/chaos</code> and Core's <code>Rational</code> in scope. The last line's value is shown; <code>PRINT(…)</code> adds lines, <code>TEX(…)</code> typesets math.</span></div>
   <textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code">const f = logistic(4);
@@ -60,7 +61,9 @@ const c = f.compare("1/10", 70);
 for (const n of [10, 30, 50, 52, 60, 70]) PRINT(`step ${n}: float ${c.rows[n].float.toFixed(12)}  true ${c.rows[n].exact.low.toDecimal(12)}  correct digits ${c.rows[n].digits.toFixed(1)}`);
 PRINT("the double has no correct digit from step", c.parted);
 PRINT("period 2:", f.periodicPoints(2).map((p) =&gt; p.text).join(" and "));
-plan.map((p) =&gt; `${p.phase}. ${p.contents}`)</textarea>
+const vdp = vanDerPol(1).periodicOrbit({ variable: "y", value: 0, direction: -1 }, { x: 2 });
+PRINT("Van der Pol's limit cycle, proven:", vdp.stability, "period", vdp.period.low.toDecimal(9));
+henon().periodicPoints(2, { x: [-2, 2], y: [-2, 2] }).map((p) =&gt; `(${p.point[0].low.toDecimal(8)}, ${p.point[1].low.toDecimal(8)}) ${p.stability}`)</textarea>
   <div class="runbox-bar"><button type="button" data-run>Run</button><button type="button" class="ghost" data-reset>Reset</button><span class="runbox-meta">Ctrl/⌘ + Enter runs</span></div>
   <div class="runbox-out" aria-live="polite"></div>
 </section>
@@ -69,7 +72,7 @@ plan.map((p) =&gt; `${p.phase}. ${p.contents}`)</textarea>
 </main>
 </div>
 <script type="module">
-import { topicCards } from "./assets/site.js?v=c2fcc9e685";
+import { topicCards } from "./assets/site.js?v=64becaf517";
 topicCards(document.getElementById("cards"));
 </script>
 </body>
