@@ -1,7 +1,24 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
+- Phase 3, maps of the plane: `planeMap`, `henon`, `standardMap` with exact,
+  enclosed and float orbits and `compare`; `periodicPoints(n, region)`,
+  `fixedPoints` and `cycles` prove each point by Krawczyk's test on Fⁿ − id
+  and say whether the list is complete; `exactPeriodicPoints(n)` gives
+  algebraic numbers when one coordinate can be eliminated; the Jacobian
+  determinant is found symbolically when it is constant. `catMap`, `torusMap`
+  and `horseshoe` are exact throughout.
+- Phase 3, flows: `flow`, `lorenz`, `rossler`, `vanDerPol`, `pendulum`.
+  `solve` encloses the true solution with a Taylor method in outward-rounded
+  float intervals that carries the derivative with respect to the starting
+  point; `returnMap` encloses a section's return map and its derivative;
+  `periodicOrbit` proves a closed orbit exists, with its period, multipliers
+  and stability; `equilibria` finds and classifies every equilibrium in a
+  box; `bifurcations` brackets the parameters where equilibria appear, merge
+  or change stability and names the change.
+- `plan` is now empty: every phase is built.
+- Docs: five new topic pages and two new explore panels.
 - `@ratmath/core` is now a peer dependency (`>=0.10.0 <0.12.0`): the package
   uses the program's own copy of Core instead of bringing its own, so Core 0.11
   works and there is never a second copy whose `Rational` is not the same class.

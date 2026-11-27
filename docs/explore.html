@@ -12,8 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=c2fcc9e685">
-<script type="module" src="assets/site.js?v=c2fcc9e685"></script>
+<link rel="stylesheet" href="https://ratmath.com/assets/katex/0.19.1/katex.min.css">
+<link rel="stylesheet" href="assets/style.css?v=64becaf517">
+<script type="module" src="assets/site.js?v=64becaf517"></script>
 </head>
 <body>
 <div class="shell">
@@ -22,7 +23,7 @@
 <article>
 <div class="eyebrow">Explore</div>
 <h1>Explore</h1>
-<p class="lede">Type a map and a starting point. The page draws the cobweb, lists the true orbit beside the floating-point one, and finds the periodic points. Further down: escape-time pictures with every pixel proved or left undecided, attractors, and cellular automata.</p>
+<p class="lede">Type a map and a starting point. The page draws the cobweb, lists the true orbit beside the floating-point one, and finds the periodic points. Further down: the Hénon map with its periodic points proven, flows with their equilibria, escape-time pictures with every pixel proved or left undecided, attractors, and cellular automata.</p>
 
 <h2>A map and an orbit</h2>
 <div class="demo">
@@ -45,6 +46,27 @@
 <div id="ex-per"></div>
 </div>
 <p>For a polynomial map these are exact algebraic numbers. The Lyapunov exponent in the first panel is the certified average along the true orbit.</p>
+
+<h2>A map of the plane</h2>
+<div class="demo">
+<div class="demo-row">
+<label>a<input id="ex-ha" class="text" value="1.4" size="6" spellcheck="false"></label>
+<label>b<input id="ex-hb" class="text" value="0.3" size="6" spellcheck="false"></label>
+<label>Period<input id="ex-hp" class="text" type="number" min="1" max="6" value="2" size="4"></label>
+</div>
+<div id="ex-hen"></div>
+</div>
+<p>The Hénon map <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo><mo>↦</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>a</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mi>y</mi><mo separator="true">,</mo><mtext> </mtext><mi>b</mi><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(x, y) \mapsto (1 - ax^2 + y,\ bx)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">↦</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord mathnormal">a</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mpunct">,</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span>. The dots are a floating-point orbit, an estimate of the attractor. The marked points are the points of the chosen least period in the square from −2 to 2, each proven to exist and to be alone in its box. Try a = 1, b = 0.3, where a cycle of period 4 attracts.</p>
+
+<h2>A flow</h2>
+<div class="demo">
+<div class="demo-row">
+<label>System<select id="ex-sys"><option value="lorenz">Lorenz</option><option value="rossler">Rössler</option><option value="vdp">Van der Pol</option><option value="pendulum">Damped pendulum</option></select></label>
+<label>Time<input id="ex-T" class="text" type="number" min="1" max="100" value="30" size="5"></label>
+</div>
+<div id="ex-flow"></div>
+</div>
+<p>The curve is a path in doubles, for the eye. The table is proven: every equilibrium in the box shown, with its kind read from enclosed eigenvalues.</p>
 
 <h2>Escape-time pictures</h2>
 <div class="demo">
@@ -80,7 +102,9 @@ const f = map("r*x*(1 - x)", { params: { r: 4 } });
 const c = f.compare("1/10", 60);
 PRINT("parted at step", c.parted);
 PRINT("exponent over 60 steps:", lyapunov(f, "1/10", { steps: 60 }).value.low.toDecimal(8));
-f.periodicPoints(2).map((p) =&gt; `${p.text}: ${p.stability}`)</textarea>
+PRINT("logistic period 2:", f.periodicPoints(2).map((p) =&gt; `${p.text}: ${p.stability}`).join("; "));
+PRINT("Hénon period 2:", henon().periodicPoints(2, { x: [-2, 2], y: [-2, 2] }).map((p) =&gt; `(${p.point[0].low.toDecimal(6)}, ${p.point[1].low.toDecimal(6)}) ${p.stability}`).join("; "));
+lorenz().equilibria({ x: [-20, 20], y: [-20, 20], z: [-1, 40] }).map((e) =&gt; `(${e.point.map((c) =&gt; c.low.toDecimal(4)).join(", ")}) ${e.kind}`)</textarea>
   <div class="runbox-bar"><button type="button" data-run>Run</button><button type="button" class="ghost" data-reset>Reset</button><span class="runbox-meta">Ctrl/⌘ + Enter runs</span></div>
   <div class="runbox-out" aria-live="polite"></div>
 </section>
@@ -89,7 +113,7 @@ f.periodicPoints(2).map((p) =&gt; `${p.text}: ${p.stability}`)</textarea>
 </main>
 </div>
 <script type="module">
-import { A as C, h } from "./assets/site.js?v=c2fcc9e685";
+import { A as C, h } from "./assets/site.js?v=64becaf517";
 const $ = (id) => document.getElementById(id);
 const fail = (out, e) => out.replaceChildren(h("div", { class: "out err" }, e.message));
 const svg = (tag, attrs, ...kids) => {
@@ -165,6 +189,74 @@ const all = () => {
 for (const id of ["ex-map", "ex-r", "ex-x0", "ex-n"]) $(id).addEventListener("input", all);
 $("ex-p").addEventListener("input", periodPanel);
 all();
+const midOf = (I) => (Number(I.low.toDecimal(14)) + Number(I.high.toDecimal(14))) / 2;
+const show = (I, d) => {
+  const t = midOf(I).toFixed(d);
+  return Number(t) === 0 ? (0).toFixed(d) : t;
+};
+function path2d(pts, ix, iy, marks, label) {
+  const xs = pts.map((p) => p[ix]).concat(marks.map((m) => m[0]));
+  const ys = pts.map((p) => p[iy]).concat(marks.map((m) => m[1]));
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const W = 360, H = 260, pad = 12;
+  const sx = (v) => pad + ((v - x0) / (x1 - x0 || 1)) * (W - 2 * pad);
+  const sy = (v) => H - pad - ((v - y0) / (y1 - y0 || 1)) * (H - 2 * pad);
+  return { W, H, sx, sy, frame: (...kids) => svg("svg", { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: "img", "aria-label": label, style: "max-width:100%;height:auto;border:1px solid var(--line, #8884);border-radius:8px" }, ...kids) };
+}
+function henonPanel() {
+  const out = $("ex-hen");
+  try {
+    const F = C.henon($("ex-ha").value.trim(), $("ex-hb").value.trim());
+    const n = Math.max(1, Math.min(6, Number($("ex-hp").value) || 1));
+    const orbit = F.floatOrbit([0, 0], 3000).slice(100).filter((p) => Number.isFinite(p[0]) && Math.abs(p[0]) < 10 && Math.abs(p[1]) < 10);
+    const pts = F.periodicPoints(n, { x: [-2, 2], y: [-2, 2] });
+    const marks = pts.map((p) => [midOf(p.point[0]), midOf(p.point[1])]);
+    const g = path2d(orbit, 0, 1, marks, "Orbit of the Hénon map");
+    const pic = g.frame(
+      ...orbit.map((p) => svg("circle", { cx: g.sx(p[0]).toFixed(1), cy: g.sy(p[1]).toFixed(1), r: "0.7", fill: "currentColor", "fill-opacity": "0.6" })),
+      ...marks.map((m) => svg("circle", { cx: g.sx(m[0]).toFixed(1), cy: g.sy(m[1]).toFixed(1), r: "4", fill: "none", stroke: "var(--accent, #c2410c)", "stroke-width": "2" })));
+    out.replaceChildren(pic,
+      h("p", {}, pts.length ? `${pts.length} point${pts.length === 1 ? "" : "s"} of least period ${n}, each proven.` : `No point of least period ${n} in the square.`, pts.complete ? " The list is proven complete." : " The search stopped early, so there may be more.", orbit.length < 100 ? " The floating-point orbit from the origin escapes." : ""),
+      pts.length ? h("div", { class: "tablewrap" }, h("table", { class: "ref" }, h("tr", {}, h("th", {}, "x"), h("th", {}, "y"), h("th", {}, "stability")),
+        ...pts.map((p) => h("tr", {}, h("td", {}, show(p.point[0], 10)), h("td", {}, show(p.point[1], 10)), h("td", {}, p.stability))))) : null);
+  } catch (e) {
+    fail(out, e);
+  }
+}
+for (const id of ["ex-ha", "ex-hb", "ex-hp"]) $(id).addEventListener("change", henonPanel);
+henonPanel();
+const systems = {
+  lorenz: { make: () => C.lorenz(), start: [1, 1, 1], axes: [0, 2], region: { x: [-20, 20], y: [-20, 20], z: [-1, 40] } },
+  rossler: { make: () => C.rossler(), start: [1, 1, 0], axes: [0, 1], region: { x: [-1, 8], y: [-30, 1], z: [-1, 30] } },
+  vdp: { make: () => C.vanDerPol(1), start: ["1/2", 0], axes: [0, 1], region: { x: [-3, 3], y: [-3, 3] } },
+  pendulum: { make: () => C.pendulum("1/5"), start: [0, "5/2"], axes: [0, 1], region: { x: [-1, 8], y: [-3, 3] } },
+};
+function flowPanel() {
+  const out = $("ex-flow");
+  try {
+    const S = systems[$("ex-sys").value];
+    const F = S.make();
+    const T = Math.max(1, Math.min(100, Number($("ex-T").value) || 30));
+    const path = F.floatOrbit(S.start, T, { steps: Math.round(T * 100) }).points;
+    const eq = F.equilibria(S.region);
+    const [ix, iy] = S.axes;
+    const marks = eq.map((e) => [midOf(e.point[ix]), midOf(e.point[iy])]);
+    const g = path2d(path, ix, iy, marks, "A path of the flow");
+    const pic = g.frame(
+      svg("polyline", { points: path.map((p) => `${g.sx(p[ix]).toFixed(1)},${g.sy(p[iy]).toFixed(1)}`).join(" "), fill: "none", stroke: "currentColor", "stroke-width": "0.8", "stroke-opacity": "0.75" }),
+      ...marks.map((m) => svg("circle", { cx: g.sx(m[0]).toFixed(1), cy: g.sy(m[1]).toFixed(1), r: "4", fill: "none", stroke: "var(--accent, #c2410c)", "stroke-width": "2" })));
+    const region = Object.entries(S.region).map(([k, [a, b]]) => `${a} ≤ ${k} ≤ ${b}`).join(", ");
+    out.replaceChildren(
+      h("p", {}, String(F)), pic,
+      h("p", {}, `Drawn: ${F.variables[iy]} against ${F.variables[ix]}. Equilibria in ${region}${eq.complete ? ", all of them" : " (the search stopped early)"}:`),
+      h("div", { class: "tablewrap" }, h("table", { class: "ref" }, h("tr", {}, h("th", {}, "point"), h("th", {}, "kind"), h("th", {}, "stability")),
+        ...eq.map((e) => h("tr", {}, h("td", {}, `(${e.point.map((c) => show(c, 6)).join(", ")})`), h("td", {}, e.kind), h("td", {}, e.stability))))));
+  } catch (e) {
+    fail(out, e);
+  }
+}
+for (const id of ["ex-sys", "ex-T"]) $(id).addEventListener("change", flowPanel);
+flowPanel();
 function canvasOf(w, h, scale) {
   const cv = document.createElement("canvas");
   cv.width = w;

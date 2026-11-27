@@ -56,8 +56,34 @@
 <tr><td>itinerary(f, x0, n), kneading(f, n)</td><td>Symbol strings on true orbits. See <a href="symbolic-dynamics.html">Symbolic dynamics</a>.</td></tr>
 <tr><td>sharkovskii</td><td>{ order(limit), compare(a, b), forces(a, b), forced(n, limit) }.</td></tr>
 <tr><td>ChaosError</td><td>What the library throws, with a <code>code</code>: inexact, too-large, escapes, not-polynomial, not-proven and others.</td></tr>
-<tr><td>plan</td><td>The phases still to come, each { phase, contents, estimate }.</td></tr>
+<tr><td>plan</td><td>The phases still to come. Every phase is built, so the list is empty.</td></tr>
 </table></div>
+<h2>Maps of the plane</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>planeMap([f, g], { variables, params }), henon(a, b), standardMap(k), PlaneMap</td><td>A map of the plane from two formulas. Fields: text, variables, params, determinant (when constant), areaPreserving. See <a href="plane-maps.html">Maps of the plane</a>.</td></tr>
+<tr><td>at(p), float(p), enclose(P, bits), jacobian()</td><td>One step: exact, in doubles, as intervals; the Jacobian as formulas.</td></tr>
+<tr><td>orbit, floatOrbit, enclosedOrbit, compare</td><td>As for maps of the line, on pairs.</td></tr>
+<tr><td>periodicPoints(n, region, { all }), fixedPoints(region), cycles(n, region)</td><td>Every point of least period n in a box, each proven and alone in its enclosure, with multipliers and stability; <code>complete</code> says none was missed.</td></tr>
+<tr><td>exactPeriodicPoints(n)</td><td>The points as algebraic numbers, when one coordinate can be eliminated.</td></tr>
+<tr><td>lyapunov(p, n)</td><td>Both exponents, estimated; their sum enclosed when the determinant is constant.</td></tr>
+<tr><td>catMap(), torusMap(matrix), TorusMap</td><td>Integer matrices on the torus, exact: at, orbit, period, periods(q), fixedPointCount(n), eigen(), entropy(), floatPartsAt. See <a href="cat-map-and-horseshoe.html">The cat map and the horseshoe</a>.</td></tr>
+<tr><td>horseshoe(), Horseshoe</td><td>Smale's horseshoe in exact coordinates: at, itinerary, periodicPoint(word), periodicPoints(n), orbitCount(n), strips(n), dimension.</td></tr>
+</table></div>
+
+<h2>Flows</h2>
+<div class="tablewrap"><table class="ref">
+<tr><th>Export</th><th>What it does</th></tr>
+<tr><td>flow(field, { variables, params }), Flow</td><td>A system x′ = f(x) from one formula per variable. Fields: n, text, variables, params; with(params), jacobian(), velocity(p).</td></tr>
+<tr><td>lorenz(s, r, b), rossler(a, b, c), vanDerPol(mu), pendulum(damping)</td><td>The standard systems.</td></tr>
+<tr><td>solve(p0, until, { order, maxStep, maxSteps })</td><td>The solution through a point or a box, enclosed: { final, complete, reason, reached, steps, width, at(t) }. See <a href="flows.html">Flows</a>.</td></tr>
+<tr><td>floatOrbit(p0, until, { steps })</td><td>A path in doubles for drawing: { t, points }.</td></tr>
+<tr><td>returnMap(section, start, { returns })</td><td>The return map of a section { variable, value, direction }: enclosures of the point, the time and the derivative. See <a href="periodic-orbits.html">Sections and periodic orbits</a>.</td></tr>
+<tr><td>periodicOrbit(section, guess, { returns, radius })</td><td>A periodic orbit proven to exist near the guess, with period, multipliers and stability; or { proven: false, reason }.</td></tr>
+<tr><td>equilibria(region)</td><td>Every equilibrium in a box, with eigenvalues and kind. See <a href="equilibria.html">Equilibria</a>.</td></tr>
+<tr><td>bifurcations(param, [from, to], region, { samples, tol })</td><td>Parameter brackets where equilibria appear, merge or change stability, named.</td></tr>
+</table></div>
+
 <h2>Fractals</h2>
 <div class="tablewrap"><table class="ref">
 <tr><th>Export</th><th>What it does</th></tr>
@@ -87,7 +113,10 @@ PRINT("at 1/2:", String(f.at("1/2")), " f′(1/2):", String(f.derivativeAt("1/2"
 PRINT("f² =", f.iterate(2).join(", "), "(coefficients, constant first)");
 PRINT("fixed:", f.fixedPoints().map((p) =&gt; `${p.text} (${p.stability})`).join(", "));
 PRINT("4-cycle:", f.cycles(4).map((c) =&gt; `${c.values.map((v) =&gt; v.toString(6)).join(" → ")} (${c.stability})`).join("; "));
-PRINT("still planned:", plan.map((p) =&gt; p.phase).join(", "));
+const H = henon();
+PRINT(String(H), " determinant", String(H.determinant));
+PRINT("Hénon fixed points:", H.exactPeriodicPoints(1).map((p) =&gt; p.text[0]).join(" and "));
+PRINT("Lorenz equilibria:", lorenz().equilibria({ x: [-20, 20], y: [-20, 20], z: [-1, 40] }).map((e) =&gt; e.kind).join(", "));
 kneading(f, 16)
 </template>
 </article>

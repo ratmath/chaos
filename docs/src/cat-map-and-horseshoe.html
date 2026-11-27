@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The cat map and the horseshoe · RatMath Chaos</title>
+<meta name="description" content="Arnold's cat map and Smale's horseshoe in @ratmath/chaos, both exact: periods of rational points, counts of periodic points, eigen-directions in Q(√5), entropy, itineraries and periodic points from words.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>The cat map and the horseshoe</h1>
+<p class="lede">Two maps of the plane can be done with no approximation at all, and they are the two that explain the rest: the cat map, where chaos is linear algebra, and the horseshoe, where it is counting words.</p>
+<pre><code>const cat = catMap();                       // (x, y) → (2x + y, x + y) mod 1
+cat.period(["3/101", "7/101"]).period;      // 25: every rational point is periodic
+cat.floatPartsAt(["3/101", "7/101"]);       // 38: the step at which doubles have lost that orbit
+cat.fixedPointCount(5);                     // 121n points fixed by the fifth iterate
+cat.entropy().text;                         // "log((3 + √5)/2)"
+
+const hs = horseshoe();
+hs.periodicPoint("011");                    // [9/13, 3/13], the point whose itinerary is 011011011…
+hs.orbitCount(6);                           // 9 orbits of least period 6</code></pre>
+<h2>The cat map</h2>
+<p>Arnold's cat map acts on the torus, the unit square with opposite sides glued:</p>
+\[ \begin{pmatrix} x \\ y \end{pmatrix} \mapsto \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix} \bmod 1 . \]
+<p>The matrix has whole entries and determinant 1, so the map is invertible and keeps areas. Its eigenvalues are \(\lambda = \tfrac{3+\sqrt5}{2} \approx 2.618\) and \(1/\lambda\): every small disc is stretched by \(\lambda\) along one direction and squeezed along the other, at every point, in the same directions. <code>eigen()</code> gives the eigenvalues and the slopes of the two directions as exact numbers in \(\mathbb{Q}(\sqrt5)\); the slopes are irrational, which is why the stretched disc winds densely round the torus instead of closing up.</p>
+<p><strong>Rational points.</strong> A point with coordinates \(i/q, j/q\) goes to another such point, and there are only \(q^2\) of them, so (the map being invertible) every rational point is periodic. <code>period(p)</code> finds the period by exact iteration and <code>periods(q)</code> tabulates all points of denominator \(q\). These are the famous pictures of a cat that reassembles after a few hundred steps: the pixels are rational points.</p>
+<p><strong>What doubles do.</strong> The same orbit in doubles is not periodic. Each step multiplies the rounding error by \(\lambda\), so after \(n\) steps an error of \(10^{-16}\) has grown to \(10^{-16}\lambda^n\), which reaches the size of the torus near \(n = 38\). <code>floatPartsAt</code> reports that step. The true orbit of \((3/101, 7/101)\) returns after 25 steps for ever; the double orbit never returns.</p>
+<p><strong>Counting.</strong> The fixed points of the \(n\)-th iterate are the solutions of \((A^n - I)p \equiv 0\), and there are exactly \(|\det(A^n - I)|\) of them: 1, 5, 16, 45, 121, … (<code>fixedPointCount</code>). They grow like \(\lambda^n\), and the growth rate \(\log\lambda\) is the map's topological entropy and its Lyapunov exponent, which <code>entropy()</code> returns as a formula and an enclosure.</p>
+<p><code>torusMap(matrix)</code> takes any 2 × 2 matrix of whole numbers; <code>hyperbolic</code> says whether it has an eigenvalue on the unit circle (a rotation by a quarter turn does, and is not chaotic).</p>
+
+<h2>The horseshoe</h2>
+<p>Smale's horseshoe takes a square, squeezes it to a third of its width, stretches it to three times its height, folds it and lays it back over the square. In the piecewise linear form used here,</p>
+\[ H(x, y) = \begin{cases} (x/3,\; 3y) & y \le 1/3 \quad \text{(symbol 0)} \\ (1 - x/3,\; 3 - 3y) & y \ge 2/3 \quad \text{(symbol 1)} \end{cases} \]
+<p>and a point with \(1/3 &lt; y &lt; 2/3\) leaves the square. The points that stay for \(n\) steps form \(2^n\) horizontal strips (<code>strips(n)</code>), the stages of the middle-thirds Cantor set; the points that have been in the square for the last \(n\) steps form \(2^n\) vertical strips. The points that never leave in either direction are a product of two Cantor sets, of dimension \(2\log 2/\log 3\).</p>
+<p><strong>Symbolic dynamics.</strong> Write 0 or 1 according to which strip the point is in at each step. Every sequence of 0s and 1s is the itinerary of exactly one point of the invariant set, and applying \(H\) shifts the sequence. So the horseshoe contains, exactly:</p>
+<ul>
+<li>a periodic point for every periodic sequence: <code>periodicPoint("011")</code> solves the affine fixed-point equation along the word and returns a rational point; there are \(2^n\) points fixed by \(H^n\), and <code>orbitCount(n)</code> orbits of least period \(n\) (2, 1, 2, 3, 6, 9, …);</li>
+<li>orbits that come arbitrarily close to every point of the set (take a sequence that contains every finite word);</li>
+<li>sensitive dependence: two points whose sequences first differ at step \(n\) are in different strips at step \(n\).</li>
+</ul>
+<p>The horseshoe matters because it is found inside other systems. Wherever a map stretches and folds a region across itself, a horseshoe sits inside, and with it all of the above. The saddle periodic orbits of the <a href="plane-maps.html">Hénon map</a> and of the <a href="periodic-orbits.html">Lorenz system</a> on the neighbouring pages are the visible part of such sets.</p>
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>catMap(), torusMap(matrix)</td><td>TorusMap</td></tr>
+<tr><td>T.at(p), T.orbit(p, n), T.floatOrbit(p, n)</td><td>exact points of the torus; doubles</td></tr>
+<tr><td>T.period(p)</td><td>{ period, preperiod, cycle }</td></tr>
+<tr><td>T.periods(q)</td><td>Map from period to the number of points of denominator q with it</td></tr>
+<tr><td>T.fixedPointCount(n)</td><td>bigint, |det(Aⁿ − I)|</td></tr>
+<tr><td>T.eigen()</td><td>[{ value, text, direction, directionText, expanding }]</td></tr>
+<tr><td>T.entropy()</td><td>{ text, value: RationalInterval }</td></tr>
+<tr><td>T.floatPartsAt(p)</td><td>the step at which the double orbit has left the true one</td></tr>
+<tr><td>horseshoe()</td><td>Horseshoe</td></tr>
+<tr><td>S.at(p), S.itinerary(p, n)</td><td>the image or null; a string of 0s and 1s</td></tr>
+<tr><td>S.periodicPoint(word), S.periodicPoints(n), S.orbitCount(n)</td><td>exact points; all 2ⁿ with word and least period; a count</td></tr>
+<tr><td>S.strips(n), S.dimension</td><td>exact intervals; { text, value }</td></tr>
+</table></div>
+<template data-runbox>
+const cat = catMap();
+PRINT(String(cat));
+PRINT("orbit of (1/5, 2/5):", cat.orbit(["1/5", "2/5"], 3).map((p) =&gt; `(${p.join(", ")})`).join(" "));
+PRINT("period of (3/101, 7/101):", cat.period(["3/101", "7/101"]).period, "  doubles lose it at step", cat.floatPartsAt(["3/101", "7/101"]));
+PRINT("periods of the points with denominator 10:", [...cat.periods(10)].map(([p, k]) =&gt; `${k} of period ${p}`).join(", "));
+PRINT("fixed points of the n-th iterate:", [1, 2, 3, 4, 5, 6, 7, 8].map((n) =&gt; cat.fixedPointCount(n)).join(", "));
+for (const e of cat.eigen()) PRINT(`eigenvalue ${e.text}, direction of slope ${e.directionText}, ${e.expanding ? "expanding" : "contracting"}`);
+PRINT("entropy", cat.entropy().text, "=", cat.entropy().value.low.toDecimal(15));
+
+const hs = horseshoe();
+for (const w of ["0", "1", "01", "011", "0010111"]) {
+  const p = hs.periodicPoint(w);
+  PRINT(`word ${w}: point (${p.join(", ")}), itinerary ${hs.itinerary(p, 14)}`);
+}
+PRINT("orbits of least period 1 to 10:", Array.from({ length: 10 }, (_, i) =&gt; hs.orbitCount(i + 1)).join(", "));
+PRINT("strips after 2 steps:", hs.strips(2).horizontal.map(([a, b]) =&gt; `[${a}, ${b}]`).join(" "));
+`dimension of the invariant set: ${hs.dimension.text} = ${hs.dimension.value.toFixed(6)}`
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>

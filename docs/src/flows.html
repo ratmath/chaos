@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flows, enclosed · RatMath Chaos</title>
+<meta name="description" content="Flows in @ratmath/chaos: the Lorenz, Rössler, Van der Pol and pendulum systems solved with guaranteed enclosures by a Taylor method with Lohner's sets, beside what Runge–Kutta in doubles returns.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/site.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside></aside>
+<main>
+<article>
+<div class="eyebrow">Topic</div>
+<h1>Flows, enclosed</h1>
+<p class="lede">A flow is the motion defined by a system of differential equations \(x' = f(x)\). On a chaotic flow a numerical solver drifts off the true solution like a float orbit does, only more quietly. Here the solution is enclosed: boxes that are proven to contain it, for a point or for a whole box of starting points.</p>
+<pre><code>const L = lorenz();                            // x′ = 10(y − x), y′ = x(28 − z) − y, z′ = xy − (8/3)z
+const s = L.solve([1, 1, 1], 20);
+s.final;                                       // three intervals, each about 10⁻⁶ wide, that hold x(20), y(20), z(20)
+s.at("7/2");                                   // the same at any earlier time
+L.floatOrbit([1, 1, 1], 20, { steps: 2000 });  // Runge–Kutta: ends at 13.47…, but the true x(20) is 13.7931…
+flow(["y", "-x - y^3"], { variables: ["x", "y"] });   // any formulas</code></pre>
+<h2>The systems</h2>
+<ul>
+<li><code>lorenz(s, r, b)</code>: \(x' = s(y - x),\ y' = x(r - z) - y,\ z' = xy - bz\), by default 10, 28, 8/3: Lorenz's model of convection and the first strange attractor.</li>
+<li><code>rossler(a, b, c)</code>: \(x' = -y - z,\ y' = x + ay,\ z' = b + z(x - c)\): one nonlinear term, and a band that folds once.</li>
+<li><code>vanDerPol(mu)</code>: \(x' = y,\ y' = \mu(1 - x^2)y - x\): an oscillator that settles on one limit cycle whatever the start.</li>
+<li><code>pendulum(c)</code>: \(x' = y,\ y' = -\sin x - cy\).</li>
+<li><code>flow(formulas, { variables, params })</code> for anything else built from + − × ÷, whole powers, sin and cos. Parameters are exact numbers, and <code>with({ r: 24 })</code> gives the same family at other values.</li>
+</ul>
+
+<h2>How the solution is enclosed</h2>
+<p>The solver takes steps. In one step of length \(h\) from a set of points:</p>
+<ol>
+<li><strong>A rough box.</strong> A box \(R\) with \(X + [0, h]\,f(R) \subseteq R\) contains the solution on the whole step, by the Picard–Lindelöf theorem.</li>
+<li><strong>A Taylor polynomial with a bounded remainder.</strong> The Taylor coefficients of the solution are computed from the formulas by automatic differentiation, in interval arithmetic. The polynomial of degree 12 from the centre of the set is the main part; the next coefficient, taken over all of \(R\), bounds what was left out.</li>
+<li><strong>The derivative of the flow.</strong> The same is done for the variational equation \(V' = Df(x)\,V\), which gives an interval matrix \(A\) containing the derivative of the time-\(h\) map at every point of the set. By the mean value theorem the image of the set lies in (image of the centre) + \(A\)·(set − centre).</li>
+<li><strong>Sets that turn.</strong> A set is kept as a centre, a frame and a box of coordinates in that frame, and the new frame is the orthogonal factor of \(A\) times the old one (Lohner's method). A box with fixed axes would be re-wrapped at every step and grow even on a rigid rotation; a frame that turns with the flow does not.</li>
+</ol>
+<p>All arithmetic is in doubles rounded outward, so the bounds are bounds, and since a double is an exact rational the results are handed back as <code>RationalInterval</code>s. The sine and cosine come from their own series with the remainder bounded, not from the platform's.</p>
+
+<h2>What it shows on a chaotic flow</h2>
+<p>From \((1, 1, 1)\) the Lorenz solution is enclosed to within \(10^{-9}\) at \(t = 10\), \(10^{-6}\) at \(t = 20\) and \(0.04\) at \(t = 30\): the enclosure widens at the rate the flow separates orbits (the Lyapunov exponent is about 0.9, so a factor of \(e^{9} \approx 8000\) per ten time units), because rounding errors are perturbations too and the enclosure has to hold them all. That widening is the honest part. A Runge–Kutta solver with 2000 steps returns \(x(20) = 13.47\) with nothing to say that only the first two digits are right; the enclosure shows \(13.7931\).</p>
+<p>The same widening limits how far a set can be followed. A box of starting points of width \(w\) picks up an error of order \(w^2\) per step from the curvature of the flow, so thin sets go far and wide ones do not. When no enclosure can be found the solver stops and says where: <code>complete</code> is false, <code>reached</code> is the time it got to, and <code>reason</code> says why. A solution that blows up in finite time, such as \(x' = x^2\) from 1, ends that way just before \(t = 1\).</p>
+<p>For a single orbit to many digits there is also analytic's <code>ode.solve</code>, which works in exact rational arithmetic with Taylor models. It is some hundred times slower, and it is what to use when 15 digits are not enough.</p>
+<div class="tablewrap"><table class="ref">
+<tr><th>call</th><th>returns</th></tr>
+<tr><td>flow(formulas, { variables, params })</td><td>Flow</td></tr>
+<tr><td>lorenz(s, r, b), rossler(a, b, c), vanDerPol(mu), pendulum(c)</td><td>Flow</td></tr>
+<tr><td>F.solve(p0, until, { order = 12, maxStep, maxSteps })</td><td>{ final, at(t), complete, reason, reached, steps, width }</td></tr>
+<tr><td>F.floatOrbit(p0, until, { steps })</td><td>{ t, points } by Runge–Kutta in doubles</td></tr>
+<tr><td>F.with(params), F.jacobian(), F.velocity(p)</td><td>the family at other parameters; formulas; the field in doubles</td></tr>
+</table></div>
+<template data-runbox>
+const L = lorenz();
+PRINT(String(L));
+const wide = (s) =&gt; s.width.toExponential(1);
+for (const T of [5, 10, 20]) {
+  const s = L.solve([1, 1, 1], T);
+  PRINT(`t = ${T}: x in [${s.final[0].low.toDecimal(8)}, ${s.final[0].high.toDecimal(8)}], width ${wide(s)}, ${s.steps} steps`);
+}
+for (const steps of [2000, 20000]) PRINT(`Runge–Kutta, ${steps} steps: x(20) = ${L.floatOrbit([1, 1, 1], 20, { steps }).points.at(-1)[0].toFixed(8)}`);
+
+const box = flow(["-x"]).solve([[1, 2]], 1);
+PRINT("x′ = −x from the box [1, 2] to t = 1:", box.final[0].low.toDecimal(8), "to", box.final[0].high.toDecimal(8), " (1/e and 2/e)");
+const up = flow(["x^2"]).solve([1], 2);
+PRINT("x′ = x² from 1: complete", up.complete, " reached t =", up.reached.low.toDecimal(4));
+const P = pendulum().solve(["1/2", 0], 10);
+`pendulum from angle 1/2 at t = 10: ${P.final[0].low.toDecimal(11)}, width ${wide(P)}`
+</template>
+</article>
+</main>
+</div>
+</body>
+</html>
