@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Requires Core 0.12: the `@ratmath/core` peer range is now `>=0.12.0` (Core 0.12 returns Integers from `floor`/`ceil`/`trunc`/`round` and rounds half up by default).
 - Fix: `invariantDensity` and `lyapunovExponent` recognise the logistic map at
   r = 4, the tent map at slope 2 and x² − 2 by their formula, not by the map's
   display name: `map("x", { name: "logistic", params: { r: 4 } })` (the
