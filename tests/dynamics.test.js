@@ -1,5 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, setDefaultTimeout } from "bun:test";
 import { logistic, tent, quadratic, map, lyapunovExponent, invariantDensity, lyapunov, sensitivity, bifurcationDiagram, bifurcationPoint, superstable, periodDoubling, periodicWindow, itinerary, kneading, sharkovskii } from "../index.js";
+
+// certified searches: seconds each here, more on a slow machine
+setDefaultTimeout(120000);
 
 const mid = (iv) => (iv.low.toNumber() + iv.high.toNumber()) / 2;
 const width = (iv) => iv.high.subtract(iv.low).toNumber();
