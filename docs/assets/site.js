@@ -1,8 +1,8 @@
 // Shared page furniture for the chaos docs: the contents column, the theme
 // switch and the code boxes. Add each topic page to PAGES as it is written.
 
-import * as A from "./chaos.js?v=68a8bd661e";
-import { mountRunboxes } from "./runbox.js?v=68a8bd661e";
+import * as A from "./chaos.js?v=eab0d12df1";
+import { mountRunboxes } from "./runbox.js?v=eab0d12df1";
 
 export { A };
 

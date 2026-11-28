@@ -123,4 +123,14 @@ describe("the Lyapunov exponent from the invariant density", () => {
     expect(() => lyapunovExponent(logistic(4), { distribution: "x/2", interval: [0, 1] })).toThrow(/from 0/);
     expect(invariantDensity(logistic(4)).density).toBe("1/(pi*sqrt(x*(1 - x)))");
   });
+  test("known densities are recognised by the formula, not the name", () => {
+    // the identity under the name "logistic": its exponent is 0, not log 2
+    expect(() => invariantDensity(map("x", { name: "logistic", params: { r: 4 } }))).toThrow(/no closed form/);
+    expect(() => invariantDensity(map("x^2", { name: "tent", params: { mu: 2 } }))).toThrow(/no closed form/);
+    expect(invariantDensity(map("4*x*(1 - x)")).exponent).toBe("log(2)");
+    expect(invariantDensity(map("x^2 - 2", { name: "logistic" })).density).toBe("1/(pi*sqrt(4 - x^2))");
+    expect(invariantDensity(map("2*(1/2 - abs(x - 1/2))")).density).toBe("1");
+    const t = lyapunovExponent(map("4*t - 4*t^2", { variable: "t" }), { digits: 2 });
+    expect(t.invariance.proven).toBe(true);
+  });
 });

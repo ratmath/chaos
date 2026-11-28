@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Fix: `invariantDensity` and `lyapunovExponent` recognise the logistic map at
+  r = 4, the tent map at slope 2 and x² − 2 by their formula, not by the map's
+  display name: `map("x", { name: "logistic", params: { r: 4 } })` (the
+  identity, exponent 0) was given log 2. The same formula under another name
+  or variable is now recognised.
+- Neutral periodic points (multiplier exactly ±1) carry `nonlinear` and
+  `nonlinearReason`: the Schwarzian derivative decides at −1, the second and
+  third derivatives at +1. The logistic fixed point 2/3 at r = 3 is
+  "attracting".
+- `periodDoubling` refuses with a `budget` message naming the levels it found
+  when an engine's BigInt cap is reached, instead of a raw RangeError; the
+  bifurcations page runs 5 levels (6 takes seconds, and fails on Bun 1.4.0).
+- Docs: the bifurcations page states the nondegeneracy conditions behind the
+  ±1 scenarios (+1 also occurs in transcritical and pitchfork bifurcations).
 - `lyapunovExponent(f, { distribution, interval })` (Course Test roadmap, item
   B8): the exponent of almost every orbit as a certified enclosure of
   ∫ log|f′| dμ against the invariant measure, given by its distribution

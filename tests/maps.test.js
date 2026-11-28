@@ -63,6 +63,16 @@ describe("periodic points", () => {
     expect(n.stability).toBe("neutral");
     expect(n.exactMultiplier.equals(new Rational(-1n))).toBe(true);
   });
+  test("a neutral point is classified by its higher-order terms", () => {
+    // r = 3: x = 2/3 + u gives the second iterate u − 18u³ − 27u⁴, which attracts
+    expect(logistic(3).fixedPoints()[1].nonlinear).toBe("attracting");
+    expect(logistic(1).fixedPoints()[0].nonlinear).toBe("semistable"); // transcritical: x − x² attracts only from the right
+    expect(map("x - x^3").fixedPoints()[0].nonlinear).toBe("attracting");
+    expect(map("x + x^3").fixedPoints()[0].nonlinear).toBe("repelling");
+    expect(map("-x - x^3").fixedPoints()[0].nonlinear).toBe("repelling"); // second iterate u + 2u³ + …
+    expect(map("-x + x^3").fixedPoints().find((p) => p.text === "0").nonlinear).toBe("attracting");
+    expect(logistic(4).fixedPoints()[0].nonlinear).toBeUndefined();
+  });
   test("least period 2 excludes the fixed points", () => {
     const p = logistic(4).periodicPoints(2);
     expect(p.map((x) => x.text)).toEqual(["(5 − √5)/8", "(5 + √5)/8"]);
