@@ -1,6 +1,6 @@
 # @ratmath/chaos 0.3.0: full documentation
 
-> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit b3c55e6. Each page ends with a runnable example; in it, PRINT(...) prints.
+> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit a0dd13b. Each page ends with a runnable example; in it, PRINT(...) prints.
 
 
 ---

@@ -2,7 +2,7 @@
 
 > Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. Part of the RatMath Shelf; numbers come from @ratmath/core (a peer dependency). ESM: `import * as chaos from "@ratmath/chaos"`.
 
-Built from 0.3.0, commit b3c55e6 plus uncommitted changes. `file:line` is relative to the package root (also node_modules/@ratmath/chaos/); on GitHub: https://github.com/ratmath/chaos/blob/b3c55e6/<file>#L<line>. Docs pages are under https://ratmath.com/chaos/. Full types: index.d.ts.
+Built from 0.3.0, commit a0dd13b. `file:line` is relative to the package root (also node_modules/@ratmath/chaos/); on GitHub: https://github.com/ratmath/chaos/blob/a0dd13b/<file>#L<line>. Docs pages are under https://ratmath.com/chaos/. Full types: index.d.ts.
 
 Types: `type Exact = Rational | bigint | number | string`; `type Stability = "attracting" | "repelling" | "neutral" | "superattracting" | "undecided"`; `type Point = [Rational, Rational]`; `type Range = [Exact, Exact]`; `type PlaneStability = "attracting" | "repelling" | "saddle" | "elliptic" | "undecided"`; `type PlanePoint = [Exact | RationalInterval, Exact | RationalInterval]`; `type PlaneRegion = Record<string, [Exact, Exact]>`; `type FlowValue = Exact | RationalInterval | [Exact, Exact]`; `type FlowPoint = FlowValue[] | Record<string, FlowValue>`; `type SectionPoint = Record<string, FlowValue | number> | Array<FlowValue | number>`
 
