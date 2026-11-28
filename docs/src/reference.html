@@ -47,6 +47,7 @@
 <div class="tablewrap"><table class="ref">
 <tr><th>Export</th><th>What it does</th></tr>
 <tr><td>lyapunov(f, x0, { steps, transient, digits })</td><td>The average of log|f′| along the true orbit, enclosed. See <a href="lyapunov.html">Lyapunov exponents</a>.</td></tr>
+<tr><td>lyapunovExponent(f, { distribution, interval, digits }), invariantDensity(f)</td><td>The exponent of almost every orbit as a certified integral of log|f′| against the invariant measure. See <a href="lyapunov.html">Lyapunov exponents</a>.</td></tr>
 <tr><td>sensitivity(f, x0, delta, { steps, threshold })</td><td>The separation of two true orbits, step by step.</td></tr>
 <tr><td>bifurcationPoint(family, { parameter, period, multiplier, near, digits })</td><td>A parameter where a cycle's multiplier is ±1, proven. See <a href="bifurcations.html">Bifurcations</a>.</td></tr>
 <tr><td>periodDoubling(family, { parameter, levels, start })</td><td>The cascade, each doubling proven, and the ratios of the gaps.</td></tr>

@@ -1,5 +1,8 @@
-import { describe, expect, test } from "bun:test";
-import { logistic, tent, lyapunov, sensitivity, bifurcationDiagram, bifurcationPoint, superstable, periodDoubling, periodicWindow, itinerary, kneading, sharkovskii } from "../index.js";
+import { describe, expect, test, setDefaultTimeout } from "bun:test";
+import { logistic, tent, quadratic, map, lyapunovExponent, invariantDensity, lyapunov, sensitivity, bifurcationDiagram, bifurcationPoint, superstable, periodDoubling, periodicWindow, itinerary, kneading, sharkovskii } from "../index.js";
+
+// certified searches: seconds each here, more on a slow machine
+setDefaultTimeout(120000);
 
 const mid = (iv) => (iv.low.toNumber() + iv.high.toNumber()) / 2;
 const width = (iv) => iv.high.subtract(iv.low).toNumber();
@@ -81,5 +84,43 @@ describe("symbolic dynamics", () => {
     expect(sharkovskii.forces(4, 3)).toBe(false);
     expect(sharkovskii.forced(6, 12)).toEqual([6, 10, 12, 8, 4, 2, 1]);
     expect(() => sharkovskii.compare(0, 1)).toThrow();
+  });
+});
+
+describe("the Lyapunov exponent from the invariant density", () => {
+  const has = (iv, x) => iv.low.toNumber() <= x && x <= iv.high.toNumber();
+  const width = (iv) => iv.high.subtract(iv.low).toNumber();
+  test("logistic map at r = 4: an enclosure of log 2", () => {
+    const e = lyapunovExponent(logistic(4), { digits: 4 });
+    expect(has(e.value, Math.LN2)).toBe(true);
+    expect(width(e.value)).toBeLessThan(2e-4);
+    expect(e.criticalPoints.map(String)).toEqual(["1/2"]);
+    expect(e.invariance.proven).toBe(true);
+    expect(e.invariance.holds).toBe(true);
+    expect(e.exponent).toBe("log(2)");
+    // the finite orbit average is near it but is not it
+    const avg = lyapunov(logistic(4), "1/5").value;
+    expect(Math.abs(avg.low.toNumber() - Math.LN2)).toBeLessThan(5e-3);
+  });
+  test("tent map and x^2 - 2", () => {
+    const t = lyapunovExponent(tent(2));
+    expect(has(t.value, Math.LN2)).toBe(true);
+    expect(width(t.value)).toBeLessThan(1e-12);
+    const q = lyapunovExponent(quadratic(-2), { digits: 3 });
+    expect(has(q.value, Math.LN2)).toBe(true);
+    expect(q.criticalPoints.map(String)).toEqual(["0"]);
+  });
+  test("a density supplied by the caller is tested for invariance: Chebyshev T3 gives log 3", () => {
+    const e = lyapunovExponent(map("4*x^3 - 3*x"), { distribution: "1 - acos(x)/pi", interval: [-1, 1], digits: 3 });
+    expect(has(e.value, Math.log(3))).toBe(true);
+    expect(e.invariance.proven).toBe(false);
+    expect(e.invariance.checks.length).toBe(5);
+    expect(e.invariance.holds).toBe(true);
+  });
+  test("refusals: a measure that is not invariant, a map with no known density", () => {
+    expect(() => lyapunovExponent(logistic(4), { distribution: "x", interval: [0, 1], digits: 2 })).toThrow(/not invariant/);
+    expect(() => lyapunovExponent(logistic("7/2"))).toThrow(/no closed form/);
+    expect(() => lyapunovExponent(logistic(4), { distribution: "x/2", interval: [0, 1] })).toThrow(/from 0/);
+    expect(invariantDensity(logistic(4)).density).toBe("1/(pi*sqrt(x*(1 - x)))");
   });
 });

@@ -1,6 +1,6 @@
 # @ratmath/chaos 0.3.0: full documentation
 
-> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit 82991bf. Each page ends with a runnable example; in it, PRINT(...) prints.
+> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit 76c9e37. Each page ends with a runnable example; in it, PRINT(...) prints.
 
 
 ---
@@ -114,6 +114,8 @@ Every export of `@ratmath/chaos`, with what it takes and what it returns. Number
 | Export | What it does |
 
 | lyapunov(f, x0, { steps, transient, digits }) | The average of log\|f′\| along the true orbit, enclosed. See Lyapunov exponents. |
+
+| lyapunovExponent(f, { distribution, interval, digits }), invariantDensity(f) | The exponent of almost every orbit as a certified integral of log\|f′\| against the invariant measure. See Lyapunov exponents. |
 
 | sensitivity(f, x0, delta, { steps, threshold }) | The separation of two true orbits, step by step. |
 
@@ -472,6 +474,29 @@ The field `float` is the same average computed the ordinary way. For a chaotic o
 
 - For the logistic map with r = 4, the change of variable x=sin2(πθ/2) turns it into the tent map, so λ = ln 2 for almost every starting point. Every periodic orbit except the fixed point 0 also has exactly ln 2 per step, as the 3-cycles on the previous page show.
 
+### The limit itself: integrating against the invariant density
+
+An orbit average over n steps is not the exponent, however large n is. But when the map has an ergodic invariant measure μ, almost every orbit spends its time according to μ, so the time average equals the space average:
+
+λ=∫log∣f′(x)∣dμ(x).
+For the logistic map at r=4 the measure is known. The change of variable x=sin2(πθ/2) turns 4x(1−x) into the tent map, which keeps length, so μ is the image of length: its distribution function is F(x)=π2​arcsinx​ and its density 1/(πx(1−x)​). `lyapunovExponent` encloses the integral, and the enclosure is a statement about the limit:
+
+```js
+const e = lyapunovExponent(logistic(4), { digits: 4 });
+e.value;        // [0.69309…, 0.69317…], which contains log 2 = 0.693147…
+e.invariance;   // { proven: true, reason: "x = sin(pi*θ/2)^2 turns the map into the tent map …", checks: […] }
+```
+
+The integrand is awkward twice over: the density is unbounded at 0 and 1, and log∣f′∣ is −∞ at the critical point 21​. The calculation is arranged so that neither needs a special rule.
+
+- It works with F, which is continuous. The measure of a cell [l,r] is F(r)−F(l), and on a cell with midpoint m and g=log∣f′∣, ∫gdF=g(m)ΔF+g′(m)M1​+21​g′′(ξ)∫(x−m)2dF,M1​=2h​(F(l)+F(r))−∫lr​Fdx, where ∫(x−m)2dF lies in [0,h2/4]ΔF and ∫F lies between the midpoint and trapezoid rules wherever F is convex or concave.
+
+- On a cell with the critical point c at one end, f′(x)=f′′(ξ)(x−c), so g=log∣f′′(ξ)∣+log∣x−c∣, and ∫0δ​logudu=δlogδ−δ is known exactly. The density is bounded there, and its range on the cell turns that into an interval.
+
+Cells are halved where they contribute most to the width until the total is below the tolerance.
+
+What is proven. The integral is enclosed for the measure given. That the measure is invariant is proven for the built-in maps by the change of variable named in `invariance.reason`. For a distribution you supply, it is tested: at several levels y the measure of {x:f(x)≤y} is computed from certified preimages and compared with F(y), and a mismatch is refused. The Chebyshev map 4x3−3x on [−1,1] with F=1−arccos(x)/π gives log3 this way. Ergodicity is taken from the theory of these maps and is stated in `note`.
+
 ### Sensitive dependence, measured
 
 `sensitivity(f, x0, δ)` follows the true orbits of x0​ and x0​+δ together and returns their separation at each step as an enclosure, the first step at which it passes a threshold (1/10 by default), and the average growth factor per step up to then. For r = 4 the factor is about 2: a starting error of 10−12 is a visible error after about 36 steps, and no instrument or data type changes that count by much, since each extra decimal digit of accuracy buys only log2​10≈3.3 more steps.
@@ -479,6 +504,10 @@ The field `float` is the same average computed the ordinary way. For a chaotic o
 | call | returns |
 
 | lyapunov(f, x0, { steps = 200, transient = 0, digits = 10 }) | { value: RationalInterval, steps, transient, bits, kind, float } |
+
+| lyapunovExponent(f, { distribution, interval, digits = 5 }) | { value: RationalInterval, distribution, density, criticalPoints, cells, invariance: { proven, reason, checks, holds }, exponent, note } |
+
+| invariantDensity(f) | { density, distribution, interval, exponent, reason } for the logistic map at 4, the tent map at 2 and x² − 2 |
 
 | sensitivity(f, x0, delta, { steps = 60, threshold = "1/10" }) | { rows: [{ n, separation }], reaches, rate, factor } |
 
@@ -492,6 +521,11 @@ PRINT("binary digits carried:", chaotic.bits);
 PRINT("tent map:", show(lyapunov(tent(2), "1/7", { steps: 60 }).value));
 const tame = lyapunov(logistic("3.2"), "1/10", { steps: 200, transient: 200 });
 PRINT("r = 3.2 (attracting 2-cycle):", show(tame.value), " and log(4/25)/2 =", (Math.log(0.16) / 2).toFixed(10));
+
+// The limit itself, from the invariant density: an enclosure of log 2.
+const limit = lyapunovExponent(logistic(4), { digits: 3 });
+PRINT("r = 4, from the density: [" + limit.value.low.toDecimal(6) + ", " + limit.value.high.toDecimal(6) + "]  with", limit.cells, "cells; invariance proven:", limit.invariance.proven);
+PRINT("tent map, from the density:", show(lyapunovExponent(tent(2)).value));
 
 const s = sensitivity(logistic(4), "1/10", "1/1000000000000", { steps: 50 });
 for (const n of [0, 10, 20, 30, 36]) PRINT(`separation after ${n} steps: ${s.rows[n].separation.low.toNumber().toExponential(2)}`);

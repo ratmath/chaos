@@ -15,6 +15,7 @@ export { IteratedMap, map, logistic, tent, quadratic, doubling } from "./src/map
 export { PlaneMap, planeMap, henon, standardMap, TorusMap, torusMap, catMap, Horseshoe, horseshoe } from "./src/plane.js";
 export { Flow, flow, lorenz, rossler, vanDerPol, pendulum } from "./src/flow.js";
 export { lyapunov, sensitivity, bifurcationDiagram, bifurcationPoint, superstable, periodDoubling, periodicWindow, itinerary, kneading, sharkovskii } from "./src/dynamics.js";
+export { lyapunovExponent, invariantDensity } from "./src/density.js";
 export { Affine, IFS, attractors, moran, DigitCantor, cantor, boxCounting, seeded } from "./src/fractals.js";
 export { LSystem, lsystem, lsystems, Q3 } from "./src/lsystem.js";
 export { Elementary, elementary, showRows, Life, life, patterns } from "./src/automata.js";
