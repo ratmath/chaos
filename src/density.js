@@ -32,8 +32,8 @@
 // J = ∫₀^δ log u du = δ·log δ − δ < 0.
 import { Rational, RationalInterval } from "@ratmath/core";
 import { zeros } from "@ratmath/analytic";
-import { IteratedMap } from "./map.js";
-import { refuse, ZERO, ONE, Q, toQ, Box, parse, format, differentiate, simplify, exactValue, boxValue, logAbs } from "./tree.js";
+import { IteratedMap, tent } from "./map.js";
+import { refuse, ZERO, ONE, Q, toQ, Box, P, parse, format, differentiate, simplify, exactValue, boxValue, logAbs, substitute } from "./tree.js";
 
 const HALF = Q(1, 2);
 const soft = (f) => {
@@ -92,9 +92,21 @@ function nonnegOn(t, name, cell, bits) {
   return byBox();
 }
 
+// The known families are recognised by their formula, never by the map's display name:
+// map("x", { name: "logistic", params: { r: 4 } }) is the identity, whose exponent is 0.
+const samePolynomial = (m, coeffs) => {
+  const p = m.polynomial;
+  if (!p) return false;
+  const q = P.trim(p);
+  return q.length === coeffs.length && q.every((c, i) => c.equals(coeffs[i]));
+};
+const TENT = tent(2);
+const renamed = (m) => (m.variable === "x" ? m.tree : substitute(m.tree, m.variable, { type: "var", name: "x" }));
+const sameTree = (m, ref) => format(simplify(renamed(m))) === format(simplify(ref.tree));
+
 const KNOWN = [
   {
-    test: (m) => m.name === "logistic" && m.params.r?.equals(Q(4)),
+    test: (m) => samePolynomial(m, [ZERO, Q(4), Q(-4)]),
     distribution: "2/pi*asin(sqrt(x))",
     density: "1/(pi*sqrt(x*(1 - x)))",
     interval: [ZERO, ONE],
@@ -102,15 +114,16 @@ const KNOWN = [
     reason: "x = sin(pi*θ/2)^2 turns the map into the tent map θ → 1 − |1 − 2θ|, which keeps length; the image of length under that change of variable has this distribution",
   },
   {
-    test: (m) => m.name === "tent" && m.params.mu?.equals(Q(2)),
+    test: (m) => sameTree(m, TENT),
     distribution: "x",
     density: "1",
+    critical: Q(1, 2),
     interval: [ZERO, ONE],
     exponent: "log(2)",
     reason: "each interval has two preimages of half its length, so length is kept",
   },
   {
-    test: (m) => m.name === "quadratic" && m.params.c?.equals(Q(-2)),
+    test: (m) => samePolynomial(m, [Q(-2), ZERO, ONE]),
     distribution: "1/2 + asin(x/2)/pi",
     density: "1/(pi*sqrt(4 - x^2))",
     interval: [Q(-2), Q(2)],
@@ -150,13 +163,16 @@ export function invariantDensity(m) {
 export function lyapunovExponent(m, { distribution, interval, digits = 5, checks = 5, maxCells = 20000 } = {}) {
   if (!(m instanceof IteratedMap)) refuse("bad-map", "give a map made by map(), logistic(), tent() or quadratic()");
   let known = null;
+  const x = m.variable;
+  let critical = m.critical;
   if (distribution === undefined) {
     known = invariantDensity(m);
-    distribution = known.distribution;
+    // the known distributions are written in x
+    distribution = x === "x" ? known.distribution : substitute(parse(known.distribution), "x", { type: "var", name: x });
     interval = known.interval;
+    critical = critical ?? KNOWN.find((e) => e.test(m)).critical ?? null;
   }
   if (!interval) refuse("bad-argument", "give the interval [a, b] that carries the measure");
-  const x = m.variable;
   const [a, b] = interval.map(toQ);
   if (a.compareTo(b) >= 0) refuse("bad-argument", "the interval needs a < b");
   const bits = Math.ceil(digits * 3.33) + 56;
@@ -176,7 +192,7 @@ export function lyapunovExponent(m, { distribution, interval, digits = 5, checks
   if (Fa.mag.compareTo(tiny) > 0 || Fb.sub(new Box(ONE)).mag.compareTo(tiny) > 0) refuse("bad-distribution", `the distribution must run from 0 at ${a} to 1 at ${b}; it runs from about ${Fa.mid.toNumber()} to ${Fb.mid.toNumber()}`);
 
   // pieces between corners of the map; on each, the derivatives of f as formulas
-  const corners = m.critical !== null && /abs\(/.test(format(m.tree)) && m.critical.compareTo(a) > 0 && m.critical.compareTo(b) < 0 ? [m.critical] : [];
+  const corners = critical !== null && /abs\(/.test(format(m.tree)) && critical.compareTo(a) > 0 && critical.compareTo(b) < 0 ? [critical] : [];
   const edges = [a, ...corners, b];
   const pieces = [];
   const criticalPoints = [];

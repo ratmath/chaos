@@ -1,6 +1,6 @@
 # @ratmath/chaos 0.3.0: full documentation
 
-> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit 76c9e37. Each page ends with a runnable example; in it, PRINT(...) prints.
+> Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. From https://ratmath.com/chaos/, commit b3c55e6. Each page ends with a runnable example; in it, PRINT(...) prints.
 
 
 ---
@@ -405,6 +405,8 @@ and this number, the multiplier, decides what nearby orbits do. If its absolute 
 
 The borderline cases are where things change, so they are decided exactly. The multiplier is a polynomial in the root; it equals 1, −1 or 0 exactly when that polynomial minus the constant is divisible by the root's minimal polynomial, which is a finite computation with no rounding. A multiplier of exactly 0 is reported as `"superattracting"`, and of exactly ±1 as `"neutral"`: for r = 3 the fixed point 2/3 of the logistic map has multiplier −1, the moment of the first period doubling.
 
+"Neutral" is the verdict of the linear test only. For those points the next terms decide, and the result carries `nonlinear` with a `nonlinearReason`. With multiplier −1 the Schwarzian derivative Sg=g′′′/g′−23​(g′′/g′)2 of g=fn at the point decides: negative attracts, positive repels. At r = 3, writing x=32​+u, f becomes u↦−u−3u2 and its second iterate u−18u3−27u4, so 2/3 attracts, slowly, and `nonlinear` is `"attracting"`. With multiplier +1, g′′=0 gives `"semistable"` (attracting from one side only, as 0 for r = 1), and when g′′=0 the sign of g′′′ decides.
+
 ### Cycles
 
 `cycles(n)` groups the points into orbits by applying f to each and seeing which point it lands on (the intervals are refined until that is unambiguous). Each cycle carries its Lyapunov exponent n1​log∣multiplier∣, which for a cycle is exact up to the enclosure of the logarithm.
@@ -555,9 +557,11 @@ bifurcationDiagram(family, { parameter: "r", range: [2.8, 4], count: 400 }); // 
 
 A cycle of period n is a solution of g(x,r)=x with g=frn​. It changes its nature when its multiplier gx​(x,r) passes through ±1:
 
-- −1: period doubling. The cycle stops attracting and an attracting cycle of period 2n splits off from it.
+- −1: period doubling. In the generic case the cycle stops attracting and an attracting cycle of period 2n splits off from it. That needs the multiplier to cross −1 with nonzero speed as r changes and a nonzero Schwarzian derivative of g at the point; its sign decides whether the new cycle is attracting (supercritical, as in the logistic family) or a repelling one shrinks onto the old cycle (subcritical).
 
-- +1: tangent bifurcation. A pair of cycles, one attracting and one repelling, appears out of nothing. This is how a periodic window opens in the middle of the chaotic range.
+- +1: tangent (saddle-node) bifurcation, in the generic case. A pair of cycles, one attracting and one repelling, appears out of nothing. This is how a periodic window opens in the middle of the chaotic range. It takes gxx​=0 and gr​=0 at the point; a multiplier of +1 alone also occurs in transcritical bifurcations (two cycles cross and exchange stability, as at r = 1 for the logistic map) and pitchforks (one cycle splits into three, where a symmetry forces gxx​=0).
+
+The functions on this page find and prove where the multiplier equals ±1; which scenario happens there is decided by those extra conditions, which the logistic family meets at the parameters shown.
 
 So a bifurcation is a solution (x, r) of two equations in two unknowns,
 
@@ -595,7 +599,7 @@ g(x,r)−x=0,gx​(x,r)=±1.
 ```js
 const family = logistic();
 const show = (iv, d = 15) => iv.low.toDecimal(d);
-const d = periodDoubling(family, { parameter: "r", levels: 6, start: [2.9, 0.6] });
+const d = periodDoubling(family, { parameter: "r", levels: 5, start: [2.9, 0.6] });
 d.parameters.forEach((r, k) => PRINT(`period ${2 ** k} doubles at r = ${show(r)}   (width ${r.high.subtract(r.low).toNumber().toExponential(1)})`));
 PRINT("1 + √6 =", (1 + Math.sqrt(6)).toFixed(15));
 PRINT("ratios of the gaps:", d.ratios.map((q) => show(q, 6)).join(", "), " → δ =", d.feigenbaum);

@@ -28,9 +28,10 @@ bifurcationDiagram(family, { parameter: "r", range: [2.8, 4], count: 400 }); // 
 <h2>The two equations</h2>
 <p>A cycle of period n is a solution of \(g(x, r) = x\) with \(g = f_r^n\). It changes its nature when its multiplier \(g_x(x, r)\) passes through ±1:</p>
 <ul>
-<li><strong>−1: period doubling.</strong> The cycle stops attracting and an attracting cycle of period 2n splits off from it.</li>
-<li><strong>+1: tangent bifurcation.</strong> A pair of cycles, one attracting and one repelling, appears out of nothing. This is how a periodic window opens in the middle of the chaotic range.</li>
+<li><strong>−1: period doubling.</strong> In the generic case the cycle stops attracting and an attracting cycle of period 2n splits off from it. That needs the multiplier to cross −1 with nonzero speed as r changes and a nonzero Schwarzian derivative of \(g\) at the point; its sign decides whether the new cycle is attracting (supercritical, as in the logistic family) or a repelling one shrinks onto the old cycle (subcritical).</li>
+<li><strong>+1: tangent (saddle-node) bifurcation, in the generic case.</strong> A pair of cycles, one attracting and one repelling, appears out of nothing. This is how a periodic window opens in the middle of the chaotic range. It takes \(g_{xx} \ne 0\) and \(g_r \ne 0\) at the point; a multiplier of +1 alone also occurs in transcritical bifurcations (two cycles cross and exchange stability, as at r = 1 for the logistic map) and pitchforks (one cycle splits into three, where a symmetry forces \(g_{xx} = 0\)).</li>
 </ul>
+<p>The functions on this page find and prove where the multiplier equals ±1; which scenario happens there is decided by those extra conditions, which the logistic family meets at the parameters shown.</p>
 <p>So a bifurcation is a solution (x, r) of two equations in two unknowns,</p>
 \[ g(x, r) - x = 0, \qquad g_x(x, r) = \pm 1 . \]
 <p><code>bifurcationPoint</code> solves them in two stages. Newton's method in doubles finds an approximate solution near the point you give. Then <em>Krawczyk's test</em> is run in exact interval arithmetic on a small box B around it: if the interval Newton image K(B) lies strictly inside B, there is exactly one solution in B. That is a proof, and the box is then contracted until the parameter is known to the digits asked for. The derivatives of \(f^n\) that the test needs come from the chain rule, carried through the n steps alongside the orbit.</p>
@@ -56,7 +57,7 @@ bifurcationDiagram(family, { parameter: "r", range: [2.8, 4], count: 400 }); // 
 <template data-runbox>
 const family = logistic();
 const show = (iv, d = 15) =&gt; iv.low.toDecimal(d);
-const d = periodDoubling(family, { parameter: "r", levels: 6, start: [2.9, 0.6] });
+const d = periodDoubling(family, { parameter: "r", levels: 5, start: [2.9, 0.6] });
 d.parameters.forEach((r, k) =&gt; PRINT(`period ${2 ** k} doubles at r = ${show(r)}   (width ${r.high.subtract(r.low).toNumber().toExponential(1)})`));
 PRINT("1 + √6 =", (1 + Math.sqrt(6)).toFixed(15));
 PRINT("ratios of the gaps:", d.ratios.map((q) =&gt; show(q, 6)).join(", "), " → δ =", d.feigenbaum);

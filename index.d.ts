@@ -33,6 +33,9 @@ export interface PeriodicPoint {
   stability: Stability;
   /** The multiplier when it is exactly 0, 1 or −1, else null. */
   exactMultiplier: Rational | null;
+  /** For a neutral point (multiplier exactly ±1): what the higher-order terms decide. */
+  nonlinear?: "attracting" | "repelling" | "semistable" | "undecided";
+  nonlinearReason?: string;
 }
 export interface Cycle {
   period: number;

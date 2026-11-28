@@ -304,7 +304,14 @@ export function periodDoubling(family, { parameter, levels = 4, start, digits = 
   for (let k = 0; k < levels; k++) {
     const period = 2 ** k;
     const guess = k === 0 ? start : settle(floats, x, parameter, here, period, gap);
-    const found = bifurcationPoint(family, { parameter, period, multiplier: -1, near: guess, digits });
+    let found;
+    try {
+      found = bifurcationPoint(family, { parameter, period, multiplier: -1, near: guess, digits });
+    } catch (e) {
+      // the composed map's exact coefficients grow quickly with the period; some engines cap a BigInt at 2^20 bits
+      if (e instanceof RangeError) refuse("budget", `the doubling of the period-${period} cycle needs numbers larger than this JavaScript engine can hold; levels up to ${k} were found (ask for levels: ${k})`);
+      throw e;
+    }
     points.push(found);
     const r = found.parameter.low.toNumber();
     gap = here === null ? null : r - here;

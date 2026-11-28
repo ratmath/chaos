@@ -197,6 +197,42 @@ export class IteratedMap {
     return this.periodicPoints(1, options);
   }
 
+  /**
+   * The linear test says nothing when the multiplier is ±1; the next terms of
+   * g = fⁿ at the point decide. For g′ = −1 the Schwarzian
+   * Sg = g‴/g′ − (3/2)(g″/g′)² = −g‴ − (3/2)g″² decides: negative attracts,
+   * positive repels (g∘g − p = −2·Sg·u³/3 + …). For g′ = +1, g″ ≠ 0 attracts on
+   * one side only ("semistable"); with g″ = 0, the sign of g‴ decides.
+   * → { nonlinear: "attracting" | "repelling" | "semistable" | "undecided", nonlinearReason }
+   */
+  _beyondLinear(value, dfn, minimal, target, bits) {
+    const d2 = P.derivative(dfn);
+    const d3 = P.derivative(d2);
+    const signAt = (q) => {
+      if (P.deg(P.divmod(q, minimal).rem) < 0) return 0; // q vanishes at the root exactly
+      for (let b = bits; b <= 4 * bits; b *= 2) {
+        const [lo, hi] = value.interval(b);
+        const e = P.evaluateBox(q, new Box(lo, hi), b + 32);
+        if (e.lo.numerator > 0n) return 1;
+        if (e.hi.numerator < 0n) return -1;
+      }
+      return null;
+    };
+    if (target.equals(ONE)) {
+      const s2 = signAt(d2);
+      if (s2 === null) return { nonlinear: "undecided", nonlinearReason: "the sign of (fⁿ)″ at the point was not settled" };
+      if (s2 !== 0) return { nonlinear: "semistable", nonlinearReason: `multiplier +1 and (fⁿ)″ ${s2 > 0 ? ">" : "<"} 0: points on one side are attracted, on the other repelled` };
+      const s3 = signAt(d3);
+      if (s3 === null || s3 === 0) return { nonlinear: "undecided", nonlinearReason: "multiplier +1, (fⁿ)″ = 0 and the sign of (fⁿ)‴ was not settled (or it is 0)" };
+      return { nonlinear: s3 < 0 ? "attracting" : "repelling", nonlinearReason: `multiplier +1, (fⁿ)″ = 0 and (fⁿ)‴ ${s3 < 0 ? "<" : ">"} 0` };
+    }
+    // Sg = −g‴ − (3/2)g″² as a polynomial in the point
+    const S = P.sub(P.scale(d3, Q(-1)), P.scale(P.mul(d2, d2), Q(3, 2)));
+    const sS = signAt(S);
+    if (sS === null || sS === 0) return { nonlinear: "undecided", nonlinearReason: "multiplier −1 and the Schwarzian derivative at the point was not settled (or it is 0)" };
+    return { nonlinear: sS < 0 ? "attracting" : "repelling", nonlinearReason: `multiplier −1 and Schwarzian derivative ${sS < 0 ? "negative" : "positive"} at the point, so the second iterate ${sS < 0 ? "attracts" : "repels"} (slowly, at cubic order)` };
+  }
+
   _multiplierAt(value, dfn, bits) {
     const minimal = value.poly.map((c) => new Rational(c));
     const exactly = (target) => P.deg(P.gcd(minimal, P.sub(dfn, [target]))) >= 1 && P.deg(P.divmod(P.sub(dfn, [target]), minimal).rem) < 0;
@@ -205,7 +241,11 @@ export class IteratedMap {
     const multiplier = enc.toRationalInterval();
     // the multiplier is a polynomial in the root, so it equals a rational exactly when that polynomial minus the rational vanishes at the root
     for (const [target, stability] of [[ZERO, "superattracting"], [ONE, "neutral"], [Q(-1), "neutral"]]) {
-      if (enc.contains(target) && exactly(target)) return { multiplier: new RationalInterval(target, target), stability, exactMultiplier: target };
+      if (enc.contains(target) && exactly(target)) {
+        const out = { multiplier: new RationalInterval(target, target), stability, exactMultiplier: target };
+        if (stability === "neutral") Object.assign(out, this._beyondLinear(value, dfn, minimal, target, bits));
+        return out;
+      }
     }
     const mag = enc.abs();
     const stability = mag.hi.compareTo(ONE) < 0 ? "attracting" : mag.lo.compareTo(ONE) > 0 ? "repelling" : "undecided";
