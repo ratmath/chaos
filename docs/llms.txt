@@ -2,7 +2,7 @@
 
 > Dynamical systems and chaos for RatMath: orbits, periodic points, bifurcations, Lyapunov exponents, fractals, maps of the plane and flows, exact or certified. Part of the RatMath Shelf; numbers come from @ratmath/core (a peer dependency). ESM: `import * as chaos from "@ratmath/chaos"`.
 
-Built from 0.3.0, commit 82991bf. `file:line` is relative to the package root (also node_modules/@ratmath/chaos/); on GitHub: https://github.com/ratmath/chaos/blob/82991bf/<file>#L<line>. Docs pages are under https://ratmath.com/chaos/. Full types: index.d.ts.
+Built from 0.3.0, commit 76c9e37 plus uncommitted changes. `file:line` is relative to the package root (also node_modules/@ratmath/chaos/); on GitHub: https://github.com/ratmath/chaos/blob/76c9e37/<file>#L<line>. Docs pages are under https://ratmath.com/chaos/. Full types: index.d.ts.
 
 Types: `type Exact = Rational | bigint | number | string`; `type Stability = "attracting" | "repelling" | "neutral" | "superattracting" | "undecided"`; `type Point = [Rational, Rational]`; `type Range = [Exact, Exact]`; `type PlaneStability = "attracting" | "repelling" | "saddle" | "elliptic" | "undecided"`; `type PlanePoint = [Exact | RationalInterval, Exact | RationalInterval]`; `type PlaneRegion = Record<string, [Exact, Exact]>`; `type FlowValue = Exact | RationalInterval | [Exact, Exact]`; `type FlowPoint = FlowValue[] | Record<string, FlowValue>`; `type SectionPoint = Record<string, FlowValue | number> | Array<FlowValue | number>`
 
@@ -17,12 +17,12 @@ name(params) → result — meaning · file:line · docs page
 
 - `plan: readonly PlannedPhase[]` · src/plan.js:5
 - `ChaosError class: code` · src/tree.js:8
-- `IteratedMap class: text, variable, params, with, at, float, enclose, derivativeAt, orbit, floatOrbit, enclosedOrbit, compare, cobweb, iterate, periodicPoints, fixedPoints, cycles, periodicPointsIn, criticalPoints, toString` · src/map.js:15 · reference
-- `map(formula: string, options?: MapOptions) → IteratedMap` — A map of the line from a formula: map("r*x*(1 - x)", { params: { r: 4 } }). · src/map.js:305 · orbits
-- `logistic(r?: Exact) → IteratedMap` — The logistic map x → r·x·(1 − x). · src/map.js:307 · orbits
-- `tent(mu?: Exact) → IteratedMap` — The tent map x → μ·(1/2 − |x − 1/2|), which is μ·x up to 1/2 and μ·(1 − x) after. · src/map.js:309
-- `quadratic(c?: Exact) → IteratedMap` — The quadratic family x → x² + c. · src/map.js:311
-- `doubling(x0: Exact, options?: { base?: Exact; limit?: number }) → { orbit: Rational[]; preperiod: number; period: number; cycle: Rational[]; floatReachesZeroAt: number | null }` — The doubling map x → 2x mod 1 on [0, 1), done exactly. · src/map.js:318 · orbits
+- `IteratedMap class: text, variable, params, with, at, float, enclose, derivativeAt, orbit, floatOrbit, enclosedOrbit, compare, cobweb, iterate, periodicPoints, fixedPoints, cycles, periodicPointsIn, criticalPoints, toString` · src/map.js:18 · reference
+- `map(formula: string, options?: MapOptions) → IteratedMap` — A map of the line from a formula: map("r*x*(1 - x)", { params: { r: 4 } }). · src/map.js:308 · orbits
+- `logistic(r?: Exact) → IteratedMap` — The logistic map x → r·x·(1 − x). · src/map.js:310 · orbits
+- `tent(mu?: Exact) → IteratedMap` — The tent map x → μ·(1/2 − |x − 1/2|), which is μ·x up to 1/2 and μ·(1 − x) after. · src/map.js:312 · lyapunov
+- `quadratic(c?: Exact) → IteratedMap` — The quadratic family x → x² + c. · src/map.js:314
+- `doubling(x0: Exact, options?: { base?: Exact; limit?: number }) → { orbit: Rational[]; preperiod: number; period: number; cycle: Rational[]; floatReachesZeroAt: number | null }` — The doubling map x → 2x mod 1 on [0, 1), done exactly. · src/map.js:321 · orbits
 - `PlaneMap class: text, variables, params, determinant, areaPreserving, with, at, float, enclose, jacobian, orbit, floatOrbit, enclosedOrbit, compare, fixedPoints, cycles, exactPeriodicPoints, toString` · src/plane.js:134
 - `planeMap(field: [string, string], options?: PlaneMapOptions) → PlaneMap` — A map of the plane from two formulas. · src/plane.js:496 · plane-maps
 - `henon(a?: Exact, b?: Exact) → PlaneMap` — The Hénon map (x, y) → (1 − a·x² + y, b·x). · src/plane.js:498 · plane-maps
@@ -48,6 +48,8 @@ name(params) → result — meaning · file:line · docs page
 - `itinerary(map: IteratedMap, x0: Exact, n: number, options?: { critical?: Exact }) → string` — The itinerary of x₀: L, C or R for each of the first n points of its orbit according to which side of the critical point c it lies on. · src/dynamics.js:377 · symbolic-dynamics
 - `kneading(map: IteratedMap, n: number, options?: { critical?: Exact }) → string` — The kneading sequence: the itinerary of the critical value f(c). · src/dynamics.js:410 · symbolic-dynamics
 - `sharkovskii: { compare(a: number, b: number): number; forces(a: number, b: number): boolean; forced(n: number, limit?: number): number[]; order(limit?: number): number[]; }` — Sharkovskii's order 3 ▷ 5 ▷ 7 ▷ … ▷ 2·3 ▷ 2·5 ▷ … ▷ 4·3 ▷ … ▷ 8 ▷ 4 ▷ 2 ▷ 1. sharkovskii.compare(a, b) is negative when a comes first; a continuous map of… · src/dynamics.js:433 · symbolic-dynamics
+- `lyapunovExponent(map: IteratedMap, options?: { distribution?: string; interval?: [Exact, Exact]; digits?: number; checks?: number; maxCells?: number }) → { value: RationalInterval; kind: string; distribution: string; density: string …` — λ = ∫ log|f′| dμ for the measure with distribution function F, as a certified enclosure. lyapunovExponent(logistic(4)) an interval around log 2… · src/density.js:150 · lyapunov
+- `invariantDensity(map: IteratedMap) → InvariantDensity` — The invariant density of a map where it is known in closed form: the logistic map at r = 4, the tent map at slope 2 and x² − 2. → { density, distribution,… · src/density.js:127
 - `Affine class: a, b, c, d, e, f, similarity, det, apply, applyFloat, similarityRatio, lipschitzBound` — An affine map of the plane with rational coefficients: (x, y) → (a x + b y + e, c x + d y + f) · src/fractals.js:56 · iterated-function-systems
 - `IFS class: maps, name, probabilities, contraction, step, stage, fixedPoint, chaosGame, similarityDimension` — An iterated function system: a finite list of contracting affine maps of the plane with rational coefficients. · src/fractals.js:117 · iterated-function-systems
 - `attractors: Readonly<Record<"sierpinski" | "carpet" | "vicsek" | "cantorDust" | "heighway" | "levyDragon" | "barnsley", () => IFS>>` — The famous attractors, with exact maps. sierpinski() three maps of ratio 1/2: dimension log 3/log 2 carpet() eight maps of ratio 1/3: log 8/log 3 vicsek()… · src/fractals.js:301 · iterated-function-systems

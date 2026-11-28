@@ -35,12 +35,31 @@ sensitivity(logistic(4), "1/10", "1/1000000000000");     // { rows, reaches, rat
 <li>For the logistic map with r = 4, the change of variable \(x = \sin^2(\pi\theta/2)\) turns it into the tent map, so λ = ln 2 for almost every starting point. Every periodic orbit except the fixed point 0 also has exactly ln 2 per step, as the 3-cycles on the previous page show.</li>
 </ul>
 
+<h2>The limit itself: integrating against the invariant density</h2>
+<p>An orbit average over \(n\) steps is not the exponent, however large \(n\) is. But when the map has an ergodic invariant measure \(\mu\), almost every orbit spends its time according to \(\mu\), so the time average equals the space average:</p>
+\[ \lambda = \int \log|f'(x)|\,d\mu(x). \]
+<p>For the logistic map at \(r = 4\) the measure is known. The change of variable \(x = \sin^2(\pi\theta/2)\) turns \(4x(1 - x)\) into the tent map, which keeps length, so \(\mu\) is the image of length: its distribution function is \(F(x) = \tfrac{2}{\pi}\arcsin\sqrt{x}\) and its density \(1/(\pi\sqrt{x(1 - x)})\). <code>lyapunovExponent</code> encloses the integral, and the enclosure is a statement about the limit:</p>
+<pre><code>const e = lyapunovExponent(logistic(4), { digits: 4 });
+e.value;        // [0.69309…, 0.69317…], which contains log 2 = 0.693147…
+e.invariance;   // { proven: true, reason: "x = sin(pi*θ/2)^2 turns the map into the tent map …", checks: […] }</code></pre>
+<p>The integrand is awkward twice over: the density is unbounded at 0 and 1, and \(\log|f'|\) is \(-\infty\) at the critical point \(\tfrac12\). The calculation is arranged so that neither needs a special rule.</p>
+<ul>
+<li>It works with \(F\), which is continuous. The measure of a cell \([l, r]\) is \(F(r) - F(l)\), and on a cell with midpoint \(m\) and \(g = \log|f'|\),
+\[ \int g\,dF = g(m)\,\Delta F + g'(m)\,M_1 + \tfrac12 g''(\xi)\int (x - m)^2\,dF, \qquad M_1 = \tfrac{h}{2}\bigl(F(l) + F(r)\bigr) - \int_l^r F\,dx, \]
+where \(\int (x - m)^2 dF\) lies in \([0, h^2/4]\,\Delta F\) and \(\int F\) lies between the midpoint and trapezoid rules wherever \(F\) is convex or concave.</li>
+<li>On a cell with the critical point \(c\) at one end, \(f'(x) = f''(\xi)(x - c)\), so \(g = \log|f''(\xi)| + \log|x - c|\), and \(\int_0^\delta \log u\,du = \delta\log\delta - \delta\) is known exactly. The density is bounded there, and its range on the cell turns that into an interval.</li>
+</ul>
+<p>Cells are halved where they contribute most to the width until the total is below the tolerance.</p>
+<p><strong>What is proven.</strong> The integral is enclosed for the measure given. That the measure is invariant is proven for the built-in maps by the change of variable named in <code>invariance.reason</code>. For a distribution you supply, it is tested: at several levels \(y\) the measure of \(\{x : f(x) \le y\}\) is computed from certified preimages and compared with \(F(y)\), and a mismatch is refused. The Chebyshev map \(4x^3 - 3x\) on \([-1, 1]\) with \(F = 1 - \arccos(x)/\pi\) gives \(\log 3\) this way. Ergodicity is taken from the theory of these maps and is stated in <code>note</code>.</p>
+
 <h2>Sensitive dependence, measured</h2>
 <p><code>sensitivity(f, x0, δ)</code> follows the true orbits of \(x_0\) and \(x_0 + \delta\) together and returns their separation at each step as an enclosure, the first step at which it passes a threshold (1/10 by default), and the average growth factor per step up to then. For r = 4 the factor is about 2: a starting error of \(10^{-12}\) is a visible error after about 36 steps, and no instrument or data type changes that count by much, since each extra decimal digit of accuracy buys only \(\log_2 10 \approx 3.3\) more steps.</p>
 
 <div class="tablewrap"><table class="ref">
 <tr><th>call</th><th>returns</th></tr>
 <tr><td>lyapunov(f, x0, { steps = 200, transient = 0, digits = 10 })</td><td>{ value: RationalInterval, steps, transient, bits, kind, float }</td></tr>
+<tr><td>lyapunovExponent(f, { distribution, interval, digits = 5 })</td><td>{ value: RationalInterval, distribution, density, criticalPoints, cells, invariance: { proven, reason, checks, holds }, exponent, note }</td></tr>
+<tr><td>invariantDensity(f)</td><td>{ density, distribution, interval, exponent, reason } for the logistic map at 4, the tent map at 2 and x² − 2</td></tr>
 <tr><td>sensitivity(f, x0, delta, { steps = 60, threshold = "1/10" })</td><td>{ rows: [{ n, separation }], reaches, rate, factor }</td></tr>
 </table></div>
 <template data-runbox>
@@ -51,6 +70,11 @@ PRINT("binary digits carried:", chaotic.bits);
 PRINT("tent map:", show(lyapunov(tent(2), "1/7", { steps: 60 }).value));
 const tame = lyapunov(logistic("3.2"), "1/10", { steps: 200, transient: 200 });
 PRINT("r = 3.2 (attracting 2-cycle):", show(tame.value), " and log(4/25)/2 =", (Math.log(0.16) / 2).toFixed(10));
+
+// The limit itself, from the invariant density: an enclosure of log 2.
+const limit = lyapunovExponent(logistic(4), { digits: 3 });
+PRINT("r = 4, from the density: [" + limit.value.low.toDecimal(6) + ", " + limit.value.high.toDecimal(6) + "]  with", limit.cells, "cells; invariance proven:", limit.invariance.proven);
+PRINT("tent map, from the density:", show(lyapunovExponent(tent(2)).value));
 
 const s = sensitivity(logistic(4), "1/10", "1/1000000000000", { steps: 50 });
 for (const n of [0, 10, 20, 30, 36]) PRINT(`separation after ${n} steps: ${s.rows[n].separation.low.toNumber().toExponential(2)}`);

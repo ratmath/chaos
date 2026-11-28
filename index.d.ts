@@ -82,6 +82,23 @@ export function quadratic(c?: Exact): IteratedMap;
 export function doubling(x0: Exact, options?: { base?: Exact; limit?: number }): { orbit: Rational[]; preperiod: number; period: number; cycle: Rational[]; floatReachesZeroAt: number | null };
 
 export function lyapunov(map: IteratedMap, x0: Exact, options?: { steps?: number; transient?: number; digits?: number }): { value: RationalInterval; steps: number; transient: number; bits: number; kind: string; float: number };
+export interface InvariantDensity { density: string; distribution: string; interval: [Rational, Rational]; exponent: string; reason: string }
+/** The invariant density in closed form, where known here: logistic(4), tent(2), quadratic(-2). */
+export function invariantDensity(map: IteratedMap): InvariantDensity;
+/** λ = ∫ log|f′| dμ for the measure with the given distribution function, as a certified enclosure. */
+export function lyapunovExponent(map: IteratedMap, options?: { distribution?: string; interval?: [Exact, Exact]; digits?: number; checks?: number; maxCells?: number }): {
+  value: RationalInterval;
+  kind: string;
+  distribution: string;
+  density: string;
+  interval: [Rational, Rational];
+  criticalPoints: Rational[];
+  cells: number;
+  /** The closed form, for the built-in maps. */
+  exponent: string | null;
+  invariance: { proven: boolean; reason: string; checks: Array<{ y: Rational; measure: RationalInterval; distribution: RationalInterval; holds: boolean }>; holds: boolean };
+  note: string;
+};
 export function sensitivity(map: IteratedMap, x0: Exact, delta: Exact, options?: { steps?: number; threshold?: Exact; digits?: number }): { rows: Array<{ n: number; separation: RationalInterval }>; reaches: number | null; rate: number | null; factor: number | null };
 export function bifurcationDiagram(family: IteratedMap, options: { parameter: string; range: [Exact, Exact]; count?: number; start?: number; transient?: number; keep?: number }): { kind: "estimated"; parameter: string; columns: Array<{ parameter: number; points: number[] }> };
 export interface Bifurcation { parameter: RationalInterval; point: RationalInterval; period: number; multiplier: 1 | -1; kind: string }

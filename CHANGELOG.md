@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `lyapunovExponent(f, { distribution, interval })` (Course Test roadmap, item
+  B8): the exponent of almost every orbit as a certified enclosure of
+  ∫ log|f′| dμ against the invariant measure, given by its distribution
+  function. The unbounded density at the ends and the logarithmic singularity
+  at a critical point are both bounded rigorously. For `logistic(4)`,
+  `tent(2)` and `quadratic(-2)` the measure is built in (`invariantDensity`)
+  and the result encloses log 2; a distribution you supply is tested for
+  invariance from certified preimages and refused on a mismatch.
+
 - `enclosedOrbit` (and so `lyapunov`, `compare` and the rest that follow one
   exact orbit) took a long numerator for a large value: a bounded orbit whose
   terms carry thousands of bits, such as `lyapunov(logistic(4), "1/5",

@@ -13,8 +13,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="https://ratmath.com/assets/katex/0.19.1/katex.min.css">
-<link rel="stylesheet" href="assets/style.css?v=64becaf517">
-<script type="module" src="assets/site.js?v=64becaf517"></script>
+<link rel="stylesheet" href="assets/style.css?v=68a8bd661e">
+<script type="module" src="assets/site.js?v=68a8bd661e"></script>
 </head>
 <body>
 <div class="shell">
@@ -52,6 +52,7 @@
 <div class="tablewrap"><table class="ref">
 <tr><th>Export</th><th>What it does</th></tr>
 <tr><td>lyapunov(f, x0, { steps, transient, digits })</td><td>The average of log|f′| along the true orbit, enclosed. See <a href="lyapunov.html">Lyapunov exponents</a>.</td></tr>
+<tr><td>lyapunovExponent(f, { distribution, interval, digits }), invariantDensity(f)</td><td>The exponent of almost every orbit as a certified integral of log|f′| against the invariant measure. See <a href="lyapunov.html">Lyapunov exponents</a>.</td></tr>
 <tr><td>sensitivity(f, x0, delta, { steps, threshold })</td><td>The separation of two true orbits, step by step.</td></tr>
 <tr><td>bifurcationPoint(family, { parameter, period, multiplier, near, digits })</td><td>A parameter where a cycle's multiplier is ±1, proven. See <a href="bifurcations.html">Bifurcations</a>.</td></tr>
 <tr><td>periodDoubling(family, { parameter, levels, start })</td><td>The cascade, each doubling proven, and the ratios of the gaps.</td></tr>
